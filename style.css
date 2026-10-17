@@ -1,0 +1,73 @@
+:root {
+  color-scheme: only light;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(180deg, #5fa8ff 0%, #082345 45%, #031126 100%);
+  color: #f8fdff;
+  min-height: 100vh;
+}
+
+.game-layout {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 16px;
+  text-align: center;
+}
+
+h1 {
+  margin: 8px 0;
+}
+
+.instructions,
+.score {
+  margin: 8px 0 12px;
+}
+
+#gameCanvas {
+  width: 100%;
+  max-width: 900px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #7cc9ff 0%, #0d3d74 32%, #041c3f 100%);
+}
+
+.fact-popup {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 16px;
+}
+
+.fact-popup.show {
+  display: flex;
+}
+
+.fact-card {
+  width: min(560px, 92vw);
+  background: #f5fbff;
+  color: #08335c;
+  border-radius: 10px;
+  padding: 18px;
+  text-align: left;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.fact-card h2 {
+  margin-top: 0;
+}
+
+.fact-card button {
+  margin-top: 10px;
+  border: none;
+  border-radius: 6px;
+  padding: 9px 16px;
+  background: #0d5ea6;
+  color: #ffffff;
+  cursor: pointer;
+}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deep Sea Cleanup Claw Game</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="game-layout">
+      <h1>Deep Sea Cleanup</h1>
+      <p class="instructions">
+        Move with <strong>Left/Right</strong>. Drop hook with
+        <strong>Down Arrow</strong> or <strong>Enter</strong>.
+      </p>
+      <p class="score">Trash Collected: <span id="scoreValue">0</span></p>
+      <canvas id="gameCanvas" width="900" height="520" aria-label="Deep sea claw machine game"></canvas>
+    </main>
+
+    <section id="factPopup" class="fact-popup" aria-live="polite" aria-hidden="true">
+      <div class="fact-card">
+        <h2>Ocean Fact</h2>
+        <p id="factText"></p>
+        <button id="closeFact" type="button">Continue</button>
+      </div>
+    </section>
+
+    <script src="script.js"></script>
+  </body>
+</html>
