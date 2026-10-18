@@ -10,25 +10,25 @@
 <header class="topbar">
   <div class="brand"><h1>Clawcean</h1><span>Learn about common microplastics. Clean the sea.</span></div>
   <span class="ai-pill" id="aiPill" title="Gemini status">Gemini: checking…</span>
-  <button class="btn" id="coralBtn" type="button"><i data-ic="message"></i> Ask <span class="g-name">Coral</span></button>
-  <button class="btn" id="lensBtn" type="button"><i data-ic="search"></i> Label Lens</button>
-  <button class="btn" id="lbBtn" type="button"><i data-ic="trophy"></i> Leaderboard</button>
-  <button class="btn" id="settingsBtn" type="button" aria-label="Settings and accessibility"><i data-ic="settings-cog"></i> Settings</button>
-  <button class="btn" type="button" id="pauseBtn" aria-pressed="false"><i data-ic="pause"></i> Pause</button>
-  <button class="btn" type="button" id="resetBtn"><i data-ic="reload"></i> Restart</button>
+  <button class="btn" id="coralBtn" type="button"><span class="btn-av g-art" aria-hidden="true"></span> Ask <span class="g-name">Coral</span></button>
+  <button class="btn icon menu-toggle" id="menuBtn" type="button" aria-expanded="false" aria-controls="moreTools" aria-label="More: Label Lens, Leaderboard, Settings" title="More"><i data-ic="menu"></i></button>
+  <div class="more-tools" id="moreTools">
+    <button class="btn" id="lensBtn" type="button"><i data-ic="search"></i> Label Lens</button>
+    <button class="btn" id="lbBtn" type="button"><i data-ic="trophy"></i> Leaderboard</button>
+    <button class="btn" id="settingsBtn" type="button" aria-label="Settings and accessibility"><i data-ic="settings-cog"></i> Settings</button>
+  </div>
 </header>
 
 <main class="stage">
   <section class="cabinet" aria-label="Claw machine">
     <div class="marquee" aria-hidden="true">
       <div class="title">CLAWCEAN</div>
-      <div class="sub" id="marqueeSub">Microplastic rescue · insert curiosity</div>
+      <div class="sub" id="marqueeSub">Microplastic rescue</div>
     </div>
     <div class="hud" role="group" aria-label="Game status">
-      <div><small>Dive</small><b id="hudModule">—</b></div>
       <div><small>Rescued</small><b id="hudRound">0 / 0</b></div>
       <div><small>Score</small><b id="hudScore">0</b></div>
-      <div><small id="hudTimerLabel">Timer</small><b id="hudTimer">—</b></div>
+      <div class="hud-timer" id="hudTimerBox"><small id="hudTimerLabel">Timer</small><b id="hudTimer">—</b></div>
       <div><small>Tries</small><b class="lives" id="hudLives" aria-live="polite">—</b></div>
     </div>
     <div class="tank">
@@ -41,7 +41,11 @@
         <button type="button" id="rightBtn" aria-label="Move claw right"><i data-ic="chevron-right"></i></button>
       </div>
       <button type="button" class="drop" id="dropBtn">DROP</button>
-      <p class="keys" id="keysHint"><kbd>←</kbd> <kbd>→</kbd> move · <kbd>Space</kbd> drop · <kbd>P</kbd> pause · <kbd>T</kbd> next target (Calm mode)</p>
+      <p class="keys" id="keysHint"><kbd>←</kbd> <kbd>→</kbd> move · <kbd>Space</kbd> drop · <kbd>P</kbd> pause</p>
+      <div class="machine">
+        <button class="btn icon" type="button" id="pauseBtn" aria-pressed="false" aria-label="Pause" title="Pause (P)"><i data-ic="pause"></i></button>
+        <button class="btn icon" type="button" id="resetBtn" aria-label="Restart" title="Restart"><i data-ic="reload"></i></button>
+      </div>
     </div>
     <div class="manual-pause-overlay" id="pauseOverlay">
       <div class="pause-notice" role="status">Game paused</div>
@@ -72,7 +76,6 @@
       <div class="who"><span class="coral-av g-art" aria-hidden="true"></span><div><b class="g-name">Coral</b> · ocean guide <small class="muted" id="coralMode"></small><br><small class="muted">Chatting pauses the game.</small></div></div>
       <p class="coral-last" id="coralLast">Ask me anything about plastic, labels or recycling.</p>
       <div class="suggest" id="suggest"></div>
-      <button class="btn primary" type="button" id="coralOpen"><i data-ic="message"></i> Chat with <span class="g-name">Coral</span></button>
     </div>
   </aside>
 </main>
@@ -391,6 +394,7 @@ function applySettings() {
   document.documentElement.dataset.contrast = settings.contrast ? "high" : "";
   document.documentElement.dataset.font = settings.large ? "large" : "";
   document.documentElement.dataset.easy = settings.easy ? "on" : "";
+  document.documentElement.dataset.motion = settings.motion ? "reduce" : "";
   $("#hudTimerLabel").textContent = settings.calm ? "Mode" : "Timer";
   store.set("settings", settings);
 }
@@ -436,12 +440,13 @@ const Captions = {
       this.el.classList.toggle("compact", innerWidth < 600);
       Object.assign(st, { top: "12px", left: "50%", transform: "translateX(-50%)", width: "" });
     } else {
-      const r = $(".tank").getBoundingClientRect(), small = r.height < 300;
+      const r = $(".tank").getBoundingClientRect(), small = innerWidth <= 640;
       this.el.classList.toggle("compact", small);
       if (small) {   // phones: the tank is short, so sit just above it, over the HUD
         Object.assign(st, { top: Math.max(8, r.top - this.el.offsetHeight - 6) + "px", left: r.left + r.width / 2 + "px", transform: "translateX(-50%)", width: Math.round(r.width) + "px" });
-      } else {   // during play: mid-water in the tank, under the claw's resting spot and above the sand
-        Object.assign(st, { top: Math.max(8, r.top + r.height * 0.46) + "px", left: r.left + r.width / 2 + "px", transform: "translateX(-50%)", width: `min(${Math.round(r.width - 32)}px, 600px)` });
+      } else {   // during play: in the water, below the claw's resting spot and above the row of items
+        const top = Math.max(r.top + r.height * 0.2, Math.min(r.top + r.height * 0.46, r.top + r.height * 0.78 - this.el.offsetHeight - 6));
+        Object.assign(st, { top: Math.max(8, top) + "px", left: r.left + r.width / 2 + "px", transform: "translateX(-50%)", width: `min(${Math.round(r.width - 32)}px, 600px)` });
       }
     }
   },
@@ -792,11 +797,11 @@ function updateBanner(now) { if (game.banner.until && now > game.banner.until) {
 
 /* ---------- HUD + panel ---------- */
 function updateHUD() {
-  $("#hudModule").textContent = game.phase === "title" ? "—" : game.demo ? "Demo" : game.finished ? "Done" : `${Math.min(game.moduleIdx + 1, 5)} / 5`;
   $("#hudRound").textContent = game.round ? `${game.round.caught} / ${game.round.total}` : `${rescuedCount()} / ${TOTAL_ITEMS}`;
   $("#hudScore").textContent = game.score.toLocaleString();
   const aiming = game.phase === "aim";
   $("#hudTimer").textContent = game.calm ? "Calm" : aiming ? `${Math.ceil(game.timer)}s` : "—";
+  $("#hudTimerBox").classList.toggle("low", aiming && !game.calm && game.timer <= 5);
   const canMove = aiming && game.claw.state === "idle";
   $("#leftBtn").disabled = $("#rightBtn").disabled = $("#dropBtn").disabled = !canMove;
   $("#hudLives").innerHTML = game.round ? hearts(game.lives, game.maxLives) : "—";
@@ -854,7 +859,7 @@ function startGame(demo = false) {
 }
 
 /* ---------- lesson: one panel of picture tiles + the quick check ---------- */
-const TILE_COLORS = ["", "c-sky", "c-kelp"];
+const TILE_COLORS = ["c-coral", "c-sky", "c-kelp"];
 function openLesson(i) {
   game.moduleIdx = i; game.phase = "lesson"; game.round = null;
   updatePanel(); renderLesson(); openDlg("#lessonDlg"); tour("lesson");
@@ -1059,7 +1064,7 @@ function showCatch(it, pts) {
       <div class="chips">${it.ingredients.map(([n, p]) => `<span class="chip ${p ? "plastic" : ""}">${esc(n)}${p ? '<span class="sr-only"> (plastic)</span>' : ""}</span>`).join("")}</div>
       <span class="legend" aria-hidden="true">◆ marks a plastic ingredient</span></div>
     <div class="tiles stack">
-      <div class="tile c-coral"><div class="ico" aria-hidden="true">${icon("waves")}</div><h3>Why it's bad</h3><p>${esc(it.bad)}</p></div>
+      <div class="tile c-danger"><div class="ico" aria-hidden="true">${icon("waves")}</div><h3>Why it's bad</h3><p>${esc(it.bad)}</p></div>
       <div class="tile c-sky"><div class="ico" aria-hidden="true">${icon(bin[0])}</div><h3>${bin[1]}</h3><p>${esc(it.bin[1])}</p><p class="dont">${icon("close")} Don't ${esc(it.dont)}.</p></div>
       <div class="tile c-kelp"><div class="ico" aria-hidden="true">${icon("lightbulb")}</div><h3>Try instead</h3><p>${esc(it.swap)}</p></div>
     </div>
@@ -1696,7 +1701,6 @@ async function chatAsk(q) {
 }
 $("#coralBtn").onclick = () => openCoral();
 $("#dropBtn").onclick = () => { if (game.finished && !document.querySelector("dialog[open]")) openWelcome(); else drop(); };
-$("#coralOpen").onclick = () => openCoral();
 $("#catchLog").addEventListener("click", e => { const b = e.target.closest("button[data-item]"); if (!b) return; const it = game.items.find(x => x.id === b.dataset.item); if (it) showCatch(it, 0); });
 
 /* ---------- demo checklist ---------- */
@@ -1782,7 +1786,8 @@ function setManualPause(on) {
   game.manualPaused = on;
   document.body.classList.toggle("manual-paused", on);
   const b = $("#pauseBtn");
-  b.innerHTML = on ? `${icon("play")} Resume` : `${icon("pause")} Pause`;
+  b.innerHTML = on ? icon("play") : icon("pause");
+  b.setAttribute("aria-label", on ? "Resume" : "Pause"); b.title = on ? "Resume (P)" : "Pause (P)";
   b.setAttribute("aria-pressed", String(on));
   keys.left = keys.right = false;
   updateHUD();
@@ -1790,6 +1795,12 @@ function setManualPause(on) {
   else { releaseHeldPopups(); if (game.phase === "aim") $("#tank").focus({ preventScroll: true }); }
 }
 $("#pauseBtn").onclick = () => setManualPause(!game.manualPaused);
+// On phones the secondary tools fold behind Menu; picking one closes it again.
+function setMenu(open) { document.body.classList.toggle("menu-open", open); $("#menuBtn").setAttribute("aria-expanded", String(open)); if (open) Captions.hide(); }
+$("#menuBtn").onclick = () => setMenu(!document.body.classList.contains("menu-open"));
+document.addEventListener("keydown", e => { if (e.key === "Escape" && document.body.classList.contains("menu-open")) { setMenu(false); $("#menuBtn").focus(); } });
+document.addEventListener("click", e => { if (document.body.classList.contains("menu-open") && !e.target.closest("#moreTools, #menuBtn")) setMenu(false); });
+$("#moreTools").addEventListener("click", e => { if (e.target.closest("button")) setMenu(false); });
 $("#overlayResumeBtn").onclick = () => setManualPause(false);
 $("#welcomeForm").addEventListener("submit", e => { e.preventDefault(); startGame(); });
 $("#demoBtn").onclick = () => startGame(true);

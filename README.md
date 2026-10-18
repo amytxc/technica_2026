@@ -28,7 +28,7 @@ Without a key, the game still runs in **offline mode** with all its built-in con
 
 1. **Lesson**: one panel with 3 picture tiles, written for middle-school readers, plus a **Quick check** question. A right answer gives you +50 points and a ❤️ bonus try for that dive.
 2. **Sonar sweep**: the claw is "tuned" to that module's ingredients, and those items light up with a glow ring and a ◆ marker. The marker is a shape, so you don't need to see color to spot targets.
-3. **Grab**: move with ◀ ▶ or the arrow keys, then press DROP or Space. You have 20 s per turn. **Pause** (top bar, or `P`) freezes everything until you press Resume; **Restart** goes back to the start screen. A grab off-center is more likely to slip. A grab on an unlit item always fails, because the claw isn't tuned to that material.
+3. **Grab**: move with ◀ ▶ or the arrow keys, then press DROP or Space. You have 20 s per turn. **Pause** (the ⏸ button next to DROP, or `P`) freezes everything until you press Resume; **Restart** goes back to the start screen. A grab off-center is more likely to slip. A grab on an unlit item always fails, because the claw isn't tuned to that material.
 4. **Catch card**: shows the item's ingredients (◆ marks the plastic ones), why it harms the ocean, how to dispose of it safely, a better swap, and *"Tips for where I live"* from Gemini.
 5. Each dive starts with **1 try** (❤️ in the HUD), or 2 if you got the quick check right. A miss costs a try. Keep grabbing until you're out of tries or rescue every lit item. Clearing all of them earns a +150 bonus.
 6. After 5 dives: the final report, a **Gemini-written ocean pledge**, and the **leaderboard**.
