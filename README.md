@@ -1,6 +1,6 @@
 # Clawcean 🦀🌊
 
-**Learn the ingredients. Clean the sea.**
+**Learn about microplastics in common items. Clean the sea.**
 Clawcean is an arcade claw machine set in a polluted ocean. Five short lessons teach which everyday ingredients turn into ocean microplastics. After each lesson, the items in the tank made with those ingredients light up, and you grab as many as you can before you miss. Each rescued item opens a card that lists its plastic ingredients, explains how it harms the ocean, and shows how to throw it away safely. You pick an ocean guide (a pirate crab, a calm jellyfish, a 100-year-old turtle…). Gemini gives the guide its personality, and ElevenLabs gives it a voice.
 
 ## Run it
@@ -82,7 +82,8 @@ The guide reads lessons, catch cards, Gemini tips and chat answers aloud (turn o
 ## Files
 
 ```
-public/index.html   the whole game (HTML/CSS/JS, canvas renderer, content)
+public/index.html   the game (HTML + JS: canvas renderer, content, Gemini/voice clients)
+public/style.css    all styling
 public/art.js       pixel sprites + UI icons
 public/fonts/       self-hosted Jersey 15
 server.js           static server + Gemini proxy + shared leaderboard (data/leaderboard.json)

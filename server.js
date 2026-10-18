@@ -177,8 +177,10 @@ const server = http.createServer(async (req, res) => {
     const ext = path.extname(file);
     if (ext === ".html" && !/^\s*<!doctype/i.test(buf.toString("utf8", 0, 50))) {
       const html = buf.toString("utf8");
-      const cut = html.indexOf("</style>") + "</style>".length;
-      return send(res, 200, SHELL_HEAD + html.slice(0, cut) + "\n</head>\n<body>\n" + html.slice(cut) + "\n</body>\n</html>", MIME[".html"]);
+      // Head content (title, meta, links) ends where the first page element starts.
+      const m = html.match(/<(header|main|div|section|dialog|script|p)\b/);
+      const cut = m ? m.index : 0;
+      return send(res, 200, SHELL_HEAD + html.slice(0, cut) + "</head>\n<body>\n" + html.slice(cut) + "\n</body>\n</html>", MIME[".html"]);
     }
     send(res, 200, buf, MIME[ext] || "application/octet-stream");
   });

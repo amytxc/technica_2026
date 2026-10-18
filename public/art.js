@@ -33,6 +33,7 @@ const ICONS = {
   "message": [24, 24, "<path fill=\"currentColor\" d=\"M20 2H4v2h16zm0 14H6v2h14zm2-12h-2v12h2zM4 4H2v18h2zm2 14H4v2h2z\"/>"],
   "moon": [24, 24, "<path fill=\"currentColor\" d=\"M18 22H8v-2h10zM8 20H6v-2h2zm12 0h-2v-2h2zM6 18H4v-2h2zm16 0h-2v-4h-2v-2h2v-2h2zM4 16H2V6h2zm14 0h-6v-2h6zm-6-2h-2v-2h2zm-2-2H8V6h2zM6 6H4V4h2zm8-2h-2v2h-2V4H6V2h8z\"/>"],
   "paint": [24, 24, "<path fill=\"currentColor\" d=\"M20 2v10H3V2h1V1h3v3h2V1h2v5h2V1h6v1zM3 14v2h1v1h5v4h1v1h1v1h2v-1h1v-1h1v-4h4v-1h1v-2Zm8 7v-2h2v2Z\"/>"],
+  "pause": [24, 24, "<path fill=\"currentColor\" d=\"M10 20H4V4h6zm8-16v16h-6V4zm-4 2v12h2V6zM6 18h2V6H6z\"/>"],
   "play": [24, 24, "<path fill=\"currentColor\" d=\"M15 11h-2V9h2zm0 4h-2v-2h2zm-2 2h-2v-2h2zm0-8h-2V7h2zm-2-2H9V5h2zM9 21H7V3h2zm6-8h2v-2h-2zm-6 4h2v2H9z\"/>"],
   "recycle": [24, 24, "<g fill=\"currentColor\"><path d=\"M10 17h2v2h-2zm2-2h2v6h-2zm2-2h2v10h-2zm2 4h4v2h-4zm4-3h2v3h-2zm-2-2h2v2h-2zM4 8h6v2H4zm4 2h2v4H8zm-2 0h2v2H6zm-2 2h2v2H4zm-2 2h2v3H2zm2 3h4v2H4zm9-9h6v2h-6z\"/><path d=\"M17 4h2v6h-2zm-2 2h2v2h-2zm-2-3h2v3h-2zM8 3h2v3H8zm2-2h3v2h-3z\"/></g>"],
   "reload": [24, 24, "<g fill=\"currentColor\"><path d=\"M16 4h2v6h-2zm-2-2h2v2h-2zm0 2h2v8h-2zM4 8H2v5h2z\"/><path d=\"M4 6h16v2H4zm4 14H6v-6h2zm2 2H8v-2h2zm0-2H8v-8h2zm10-4h2v-5h-2z\"/><path d=\"M20 18H4v-2h16z\"/></g>"],
