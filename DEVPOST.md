@@ -1,4 +1,4 @@
-# Clawcean — Devpost write-up
+# Clawcean
 
 **Tagline:** A Gemini-powered claw machine that teaches you to identify everyday items that can become ocean microplastics, then lets you fish them out to clean the ocean.
 
