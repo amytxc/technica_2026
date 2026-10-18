@@ -1,17 +1,20 @@
 <title>Clawcean</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Clawcean: learn which ingredients turn into ocean microplastics, then use a claw machine to clean them up.">
+<meta name="description" content="Clawcean: learn which common items turn into ocean microplastics, then use a claw machine to clean them up.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Azeret+Mono:wght@500;700&family=Bungee&display=swap">
 <link rel="stylesheet" href="style.css" />
 
 <header class="topbar">
-  <div class="brand"><h1>Clawcean</h1><span>Learn the ingredients. Clean the sea.</span></div>
+  <div class="brand"><h1>Clawcean</h1><span>Learn about common microplastics. Clean the sea.</span></div>
   <span class="ai-pill" id="aiPill" title="Gemini status">Gemini: checking…</span>
   <button class="btn" id="lensBtn" type="button">🔍 Label Lens</button>
   <button class="btn" id="lbBtn" type="button">🏆 Leaderboard</button>
-  <button class="btn" id="settingsBtn" type="button" aria-label="Settings and accessibility">⚙ Settings</button>
+  <button class="btn" id="settingsBtn" type="button" aria-label="Settings and accessibility">⚙️ Settings</button>
+  <button class="btn" type="button" id="pauseBtn">⏸ Pause</button>
+  <button class="btn" type="button" id="resetBtn">↺ Restart</button>
+  <div class="pause-notice" role="status" aria-live="polite" hidden>Game Paused</div>
 </header>
 
 <main class="stage">
@@ -37,6 +40,10 @@
       </div>
       <button type="button" class="drop" id="dropBtn">DROP</button>
       <p class="keys" id="keysHint"><kbd>←</kbd> <kbd>→</kbd> move · <kbd>Space</kbd> drop · <kbd>T</kbd> next target (Calm mode)</p>
+    </div>
+    <div class="manual-pause-overlay" aria-live="polite">
+      <div class="pause-notice" hidden>Game Paused</div>
+      <button class="btn primary" type="button" id="overlayResumeBtn">▶ Resume</button>
     </div>
   </section>
 
@@ -85,7 +92,7 @@
       <input id="playerName" maxlength="20" placeholder="e.g. Sea Otter" autocomplete="nickname">
     </div>
     <div class="toggles">
-      <label class="toggle"><input type="checkbox" id="optCalm"><span><b>Calm mode</b><small>No turn timer, a wider grip, tap-to-aim and a "jump to next target" key. Scores get a Calm tag.</small></span></label>
+      <label class="toggle"><input type="checkbox" id="optCalm"><span><b>Calm mode</b><small>No turn timer, a wider grip, tap-to-aim and a "jump to next target" key. Scores get a Calm tag. <strong>You cannot change this mode during a game.</strong></small></span></label>
       <label class="toggle"><input type="checkbox" id="optSpeak"><span><b>Read lessons aloud</b><small>Uses your device's voice to read each card and catch.</small></span></label>
     </div>
     <div class="row end">
@@ -117,6 +124,7 @@
 
 <!-- Leaderboard -->
 <dialog id="lbDlg" aria-labelledby="lbTitle">
+  <div class="pause-notice" role="status" aria-live="polite" hidden>Game Paused</div>
   <div class="dlg">
     <h2 id="lbTitle">Leaderboard</h2>
     <p class="muted" id="lbScope"></p>
@@ -127,6 +135,7 @@
 
 <!-- Label Lens -->
 <dialog id="lensDlg" aria-labelledby="lensTitle">
+  <div class="pause-notice" role="status" aria-live="polite" hidden>Game Paused</div>
   <div class="dlg">
     <h2 id="lensTitle">Label Lens</h2>
     <p>Check a product from your own bathroom or closet. Upload a photo of the ingredient label or care tag, or paste the ingredient list. Gemini reads it and flags plastic ingredients. Without Gemini, the built-in scanner still checks pasted text.</p>
@@ -151,10 +160,11 @@
 
 <!-- Settings -->
 <dialog id="settingsDlg" aria-labelledby="settingsTitle">
+  <div class="pause-notice" role="status" aria-live="polite" hidden>Game Paused</div>
   <div class="dlg">
     <h2 id="settingsTitle">Settings</h2>
     <div class="toggles">
-      <label class="toggle"><input type="checkbox" id="setCalm"><span><b>Calm mode</b><small>No timer, wider grip, tap the tank to aim, <kbd>T</kbd> jumps to the next lit item.</small></span></label>
+      <label class="toggle"><input type="checkbox" id="setCalm"><span><b>Calm mode</b><small>No timer, wider grip, tap the tank to aim. <kbd>T</kbd> jumps to the next target. <strong>Restart the game to change this mode.</strong></small></span></label>
       <label class="toggle"><input type="checkbox" id="setSpeak"><span><b>Read aloud</b><small>Speaks lessons and catch cards.</small></span></label>
       <label class="toggle"><input type="checkbox" id="setSound"><span><b>Sound effects</b><small>Arcade beeps for moves, grabs and misses.</small></span></label>
       <label class="toggle"><input type="checkbox" id="setContrast"><span><b>High contrast</b><small>Pure black and white with brighter highlights.</small></span></label>
@@ -177,7 +187,6 @@
       </div>
     </details>
     <div class="row end">
-      <button class="btn" type="button" id="resetBtn">Restart game</button>
       <button class="btn primary" type="button" id="settingsSave">Save</button>
     </div>
   </div>
@@ -441,7 +450,7 @@ function offlineAnswer(q) {
 const W = 960, H = 540, RAIL_Y = 26, REST_Y = 78, SAND_Y = 470, CHUTE_X = 56, MIN_X = 56, MAX_X = 920;
 const game = {
   phase: "title",            // title | lesson | scan | aim | busy | catch | summary | final
-  moduleIdx: 0, score: 0, tokens: 0, player: "", calm: false,
+  moduleIdx: 0, score: 0, tokens: 0, player: "", calm: false, paused: false, manualPaused: false,
   items: [], round: null, perModule: [], quiz: [], log: [], finished: false,
   claw: { x: CHUTE_X, y: REST_Y, open: 1, state: "idle", held: null, goalX: null, t: 0, slip: false, vx: 0, sway: 0 },
   timer: 0, banner: { text: "", kind: "info", until: 0 }, fx: [], fish: [], bubbles: [], specks: []
@@ -518,7 +527,23 @@ function updatePanel() {
 /* =====================================================================
    FLOW
    ===================================================================== */
-function openDlg(id) { const d = $(id); if (!d.open) d.showModal(); }
+const PAUSE_DIALOGS = new Set(["lensDlg", "lbDlg", "settingsDlg"]);
+function setPauseNotice(paused) {
+  document.querySelectorAll(".pause-notice").forEach(notice => { notice.hidden = !paused; });
+  document.body.classList.toggle("manual-paused", game.manualPaused);
+  const pauseBtn = $("#pauseBtn");
+  pauseBtn.textContent = paused ? "▶ Resume" : "⏸ Pause";
+  pauseBtn.setAttribute("aria-pressed", String(paused));
+}
+function syncPauseState() {
+  const dialogPaused = [...PAUSE_DIALOGS].some(id => $("#" + id).open);
+  game.paused = game.manualPaused || dialogPaused;
+  setPauseNotice(game.paused);
+}
+function openDlg(id) {
+  const d = $(id); if (!d.open) d.showModal();
+  if (PAUSE_DIALOGS.has(d.id)) syncPauseState();
+}
 function closeDlg(id) { const d = $(id); if (d.open) d.close(); }
 
 function startGame() {
@@ -526,7 +551,7 @@ function startGame() {
   store.set("player", game.player);
   settings.calm = $("#optCalm").checked; settings.speak = $("#optSpeak").checked;
   game.calm = settings.calm; applySettings();
-  Object.assign(game, { moduleIdx: 0, score: 0, tokens: 0, round: null, perModule: [], quiz: [], log: [], finished: false });
+  Object.assign(game, { moduleIdx: 0, score: 0, tokens: 0, round: null, perModule: [], quiz: [], log: [], finished: false, manualPaused: false });
   setupItems();
   closeDlg("#welcomeDlg");
   openLesson(0);
@@ -555,13 +580,13 @@ function renderLesson() {
         <div class="dots" aria-label="Card ${lessonStep + 1} of ${n + 1}">${Array.from({ length: n + 1 }, (_, k) => `<i class="${k <= lessonStep ? "on" : ""}"></i>`).join("")}</div>
         <span style="margin-left:auto"></span>
         <button class="btn" type="button" id="lsRead">🔊 Read</button>
-        ${lessonStep > 0 ? '<button class="btn" type="button" id="lsBack">Back</button>' : ""}
+        ${lessonStep > 0 ? '<button class="btn" type="button" id="lsBack">← Back</button>' : ""}
         <button class="btn primary" type="button" id="lsNext">${lessonStep === n - 1 ? "Quick check →" : "Next →"}</button>
       </div>`;
     $("#lsNext").onclick = () => { lessonStep++; renderLesson(); };
     if ($("#lsBack")) $("#lsBack").onclick = () => { lessonStep--; renderLesson(); };
-    $("#lsRead").onclick = () => { const was = settings.speak; settings.speak = true; speak(`${l.h}. ${l.p}`); settings.speak = was; };
-    speak(`${l.h}. ${l.p}`);
+    $("#lsRead").onclick = () => { const was = settings.speak; settings.speak = true; speak(`${l.h}. ${l.p}. ${l.stat}`); settings.speak = was; };
+    speak(`${l.h}. ${l.p}. ${l.stat}`);
     $("#lsNext").focus();
   } else {
     const qz = m.quiz;
@@ -579,9 +604,10 @@ function renderLesson() {
       game.quiz[game.moduleIdx] = ok;
       if (ok) { game.tokens++; game.score += 50; sfx.grab(); }
       else sfx.miss();
+      const feedbackText = ok ? "Correct! +50 points and a second chance." : "Not quite.";
       $("#quizFb").innerHTML = `<div class="feedback ${ok ? "" : "bad"}"><b>${ok ? "Correct! +50 points and a 🐚 second chance." : "Not quite."}</b> ${esc(qz.why)}</div>`;
-      announce((ok ? "Correct. " : "Not quite. ") + qz.why);
-      speak((ok ? "Correct. " : "Not quite. ") + qz.why);
+      announce(`${feedbackText} ${qz.why}`);
+      speak(`${feedbackText} ${qz.why}`);
       $("#lsGo").hidden = false; $("#lsGo").focus(); updateHUD();
     });
     $("#lsGo").onclick = () => { closeDlg("#lessonDlg"); beginRound(); };
@@ -1023,9 +1049,12 @@ function drawScene(now, dt) {
     if (under) {
       const label = under.name + (isTarget(under) ? "  ◆" : "");
       ctx.font = '700 15px "Atkinson Hyperlegible", sans-serif';
-      const w = ctx.measureText(label).width + 20, lx = clamp(under.x, w / 2 + 6, W - w / 2 - 6), ly = under.y + under.r + 22;
-      ctx.fillStyle = "rgba(6,19,32,.88)"; roundRect(lx - w / 2, ly - 13, w, 26, 13); ctx.fill();
-      ctx.fillStyle = isTarget(under) ? "#ffd166" : "#e9f5f2"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(label, lx, ly + 1);
+      const w = ctx.measureText(label).width + 20;
+      const belowY = under.y + under.r + 22, aboveY = under.y - under.r - 22;
+      const ly = belowY + 13 <= H ? belowY : aboveY;
+      const safeY = clamp(ly, 13, H - 13), lx = clamp(under.x, w / 2 + 6, W - w / 2 - 6);
+      ctx.fillStyle = "rgba(6,19,32,.88)"; roundRect(lx - w / 2, safeY - 13, w, 26, 13); ctx.fill();
+      ctx.fillStyle = isTarget(under) ? "#ffd166" : "#e9f5f2"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(label, lx, safeY + 1);
     }
   }
   // floating score fx
@@ -1072,6 +1101,7 @@ function drawClaw(t) {
 const keys = { left: false, right: false };
 let lastAnnounceItem = null, lastMoveSfx = 0;
 function update(dt, now) {
+  if (game.paused) return;
   const c = game.claw;
   if (game.phase === "aim" && c.state === "idle") {
     let dir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
@@ -1131,9 +1161,11 @@ function update(dt, now) {
 let lastT = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
-  update(dt, now);
-  drawScene(now, dt);
-  updateBanner(now);
+  if (!game.paused) {
+    update(dt, now);
+    drawScene(now, dt);
+    updateBanner(now);
+  }
   requestAnimationFrame(frame);
 }
 
@@ -1201,6 +1233,7 @@ $("#catchLog").addEventListener("click", e => { const b = e.target.closest("butt
 document.querySelectorAll("dialog").forEach(d => {
   d.addEventListener("click", e => { if (e.target.matches("[data-close]")) d.close(); });
   d.addEventListener("cancel", e => { if (["welcomeDlg", "lessonDlg", "summaryDlg"].includes(d.id)) e.preventDefault(); });
+  d.addEventListener("close", () => { if (PAUSE_DIALOGS.has(d.id)) syncPauseState(); });
 });
 $("#catchDlg").addEventListener("close", () => { if ("speechSynthesis" in window) speechSynthesis.cancel(); if (game.phase === "catch") afterCatch(); });
 $("#lensBtn").onclick = () => openDlg("#lensDlg");
@@ -1213,6 +1246,12 @@ function openSettings() {
   openDlg("#settingsDlg");
 }
 $("#settingsBtn").onclick = openSettings;
+function toggleManualPause() {
+  game.manualPaused = !game.manualPaused;
+  syncPauseState();
+}
+$("#pauseBtn").onclick = toggleManualPause;
+$("#overlayResumeBtn").onclick = toggleManualPause;
 $("#welcomeSettings").onclick = openSettings;
 $("#settingsSave").onclick = () => {
   if (!$("#setCalm").disabled) settings.calm = $("#setCalm").checked;
@@ -1225,7 +1264,7 @@ $("#resetBtn").onclick = () => { closeDlg("#settingsDlg"); document.querySelecto
 $("#welcomeForm").addEventListener("submit", e => { e.preventDefault(); startGame(); });
 
 function openWelcome() {
-  game.phase = "title"; game.round = null; game.finished = false; game.score = 0; game.log = [];
+  game.phase = "title"; game.round = null; game.finished = false; game.score = 0; game.log = []; game.manualPaused = false; syncPauseState();
   setupItems(); updatePanel();
   $("#playerName").value = store.get("player", "");
   $("#optCalm").checked = settings.calm; $("#optSpeak").checked = settings.speak;
