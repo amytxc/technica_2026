@@ -4,6 +4,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 // --- tiny .env loader ---
 try {
@@ -195,7 +196,9 @@ async function handleLeaderboard(req, res) {
 process.on("unhandledRejection", e => console.error("Request failed:", e));
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
-  if (url.pathname === "/api/health") return send(res, 200, { ok: true, gemini: !!KEY, model: MODEL, voices: !!EL_KEY, leaderboard: Board.kind });
+  // voiceKeyId: first 8 hex chars of a SHA-256 of the key. It can't be turned back into the key, but it shows whether two
+  // deployments use the same key (compare with the same hash of your local .env value).
+  if (url.pathname === "/api/health") return send(res, 200, { ok: true, gemini: !!KEY, model: MODEL, voices: !!EL_KEY, voiceKeyId: EL_KEY ? crypto.createHash("sha256").update(EL_KEY).digest("hex").slice(0, 8) : null, leaderboard: Board.kind });
   if (url.pathname === "/api/tts" && req.method === "POST") return handleTts(req, res);
   if (url.pathname === "/api/gemini" && req.method === "POST") return handleGemini(req, res);
   if (url.pathname === "/api/leaderboard") return handleLeaderboard(req, res);
