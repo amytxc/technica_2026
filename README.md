@@ -21,11 +21,16 @@ Without a key, the game still runs in **offline mode** with all its built-in con
 | `ELEVENLABS_MODEL` | `eleven_v4` | Any ElevenLabs TTS model. `eleven_flash_v2_5` is about 3× faster to start talking. |
 | `ELEVENLABS_VOICE_<GUIDE>` | premade voices | Optional voice ID override per guide: `CORAL`, `PINCH`, `JELLY`, `TUCK`, `SPLASH` |
 | `PORT` | `3000` | Most hosts set this for you. |
-| `DATA_DIR` | `./data` | Where `leaderboard.json` is saved. On hosts that reset the app folder on each deploy, point this at a persistent disk. |
+| `KV_REST_API_URL` + `KV_REST_API_TOKEN` | — | Upstash Redis for the shared leaderboard on serverless hosts like Vercel (set automatically when you connect Upstash in Vercel; `UPSTASH_REDIS_REST_URL`/`_TOKEN` also work). Without them, scores go to a file. |
+| `DATA_DIR` | `./data` | Where `leaderboard.json` is saved when Upstash isn't set. On hosts that reset the app folder on each deploy, point this at a persistent disk. |
 | `TRUST_PROXY` | on | Uses the `X-Forwarded-For` header to tell players apart behind a host's proxy, so rate limits are per player. Set `0` only when the app is reached directly. |
 
 ### Deploying
-Any Node 18+ host works (Render, Railway, Fly.io, a VM): set the start command to `npm start` and add `GEMINI_API_KEY` and `ELEVENLABS_API_KEY` as environment variables in the host's dashboard (never commit `.env`). `GET /api/health` reports whether each key is set, which works as a health check. Voice clips are cached in memory, so they're regenerated after a restart.
+**Vercel (what we use):** import the repo; Vercel runs `server.js` as-is. In the project's **Settings → Environment Variables**, add `GEMINI_API_KEY` and `ELEVENLABS_API_KEY`. Vercel's file system is read-only, so for a shared leaderboard open **Storage → Create → Upstash for Redis** (free plan) and connect it to the project; that adds `KV_REST_API_URL` and `KV_REST_API_TOKEN`. Redeploy after changing variables. Without Upstash the game still works, but each player only sees scores saved on their own device.
+
+**Any other Node 18+ host** (Render, Railway, Fly.io, a VM): start command `npm start`, add the same keys as environment variables (never commit `.env`), and either connect Upstash or set `DATA_DIR` to a persistent disk.
+
+`GET /api/health` reports which keys are set and where the leaderboard is stored (`"leaderboard": "upstash"` or `"file"`), which works as a health check. Voice clips are cached in memory, so they're regenerated after a restart.
 
 **On phones**, Label Lens, Leaderboard and Settings fold behind the ☰ button in the top bar; the cabinet fits the screen width.
 

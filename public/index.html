@@ -1166,7 +1166,6 @@ async function showFinal() {
   updatePanel();
   const total = rescuedCount();
   const entry = { name: game.player, score: game.score, items: total, max: TOTAL_ITEMS, calm: game.calm, date: new Date().toISOString().slice(0, 10) };
-  const saved = await Leaderboard.add(entry);
   $("#finalBody").innerHTML = `
     <div class="dlg-head">
       <div class="hero-art" aria-hidden="true">${sprite(guide().spr, "xl")}${total === TOTAL_ITEMS ? icon("trophy") : ""}</div>
@@ -1182,7 +1181,7 @@ async function showFinal() {
     ${beforeAfter()}
     <div class="mods">${MODULES.map((m, i) => { const pm = game.perModule[i] || { caught: 0, total: 4 }; return `<div><span class="ico" aria-hidden="true">${art(m.art)}</span><b>${pm.caught}/${pm.total}</b>${stars(pm.caught, pm.total, "sm")}<small>${esc(m.title)}</small></div>`; }).join("")}</div>
     <div id="pledge"></div>
-    <div><div class="section-label">Leaderboard · ${esc(Leaderboard.scopeLabel())}</div><div id="finalLb"></div></div>
+    <div><div class="section-label">Leaderboard · ${esc(Leaderboard.scopeLabel())}</div><div id="finalLb"><p class="empty"><span class="spinner"></span> Saving your score…</p></div></div>
     <div class="row center">
       <button class="btn" type="button" id="fLens">${icon("search")} Scan a real label</button>
       <button class="btn primary" type="button" id="fAgain">Play again</button>
@@ -1191,7 +1190,8 @@ async function showFinal() {
   fillAfter();
   sfx.win();
   announce(`Game over. Final score ${game.score}. You rescued ${total} of ${TOTAL_ITEMS} items.`);
-  renderLb($("#finalLb"), saved);
+  // The report opens right away; the leaderboard fills in when the save finishes (or falls back to this device).
+  Leaderboard.add(entry).then(saved => { if ($("#finalLb")) { renderLb($("#finalLb"), saved); $("#finalLb").previousElementSibling.textContent = `Leaderboard · ${Leaderboard.scopeLabel()}`; } });
   $("#fAgain").onclick = () => { closeDlg("#finalDlg"); openWelcome(); };
   $("#fLens").onclick = () => { closeDlg("#finalDlg"); openDlg("#lensDlg"); };
   makePledge();
@@ -1254,12 +1254,12 @@ const Leaderboard = {
   server: false,
   scopeLabel() { return this.server ? "everyone playing on this server" : "this device"; },
   async load() {
-    try { const r = await fetch("/api/leaderboard", { cache: "no-store" }); if (r.ok) { const j = await r.json(); if (Array.isArray(j.entries)) { this.server = true; return j.entries; } } } catch {}
+    try { const r = await fetch("/api/leaderboard", { cache: "no-store", signal: AbortSignal.timeout(8000) }); if (r.ok) { const j = await r.json(); if (Array.isArray(j.entries)) { this.server = true; return j.entries; } } } catch {}
     this.server = false; return store.get("leaderboard", []);
   },
   async add(e) {
     e.id = Math.random().toString(36).slice(2, 10);
-    try { const r = await fetch("/api/leaderboard", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(e) }); if (r.ok) { const j = await r.json(); this.server = true; return { entries: j.entries, me: j.id || e.id }; } } catch {}
+    try { const r = await fetch("/api/leaderboard", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(e), signal: AbortSignal.timeout(8000) }); if (r.ok) { const j = await r.json(); this.server = true; return { entries: j.entries, me: j.id || e.id }; } } catch {}
     this.server = false;
     const list = store.get("leaderboard", []); list.push(e); list.sort((a, b) => b.score - a.score || b.items - a.items); store.set("leaderboard", list.slice(0, 50));
     return { entries: list.slice(0, 50), me: e.id };
