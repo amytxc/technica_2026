@@ -394,6 +394,7 @@ function applySettings() {
   document.documentElement.dataset.contrast = settings.contrast ? "high" : "";
   document.documentElement.dataset.font = settings.large ? "large" : "";
   document.documentElement.dataset.easy = settings.easy ? "on" : "";
+  document.documentElement.dataset.motion = settings.motion ? "reduce" : "";
   $("#hudTimerLabel").textContent = settings.calm ? "Mode" : "Timer";
   store.set("settings", settings);
 }
@@ -439,12 +440,13 @@ const Captions = {
       this.el.classList.toggle("compact", innerWidth < 600);
       Object.assign(st, { top: "12px", left: "50%", transform: "translateX(-50%)", width: "" });
     } else {
-      const r = $(".tank").getBoundingClientRect(), small = r.height < 300;
+      const r = $(".tank").getBoundingClientRect(), small = innerWidth <= 640;
       this.el.classList.toggle("compact", small);
       if (small) {   // phones: the tank is short, so sit just above it, over the HUD
         Object.assign(st, { top: Math.max(8, r.top - this.el.offsetHeight - 6) + "px", left: r.left + r.width / 2 + "px", transform: "translateX(-50%)", width: Math.round(r.width) + "px" });
-      } else {   // during play: mid-water in the tank, under the claw's resting spot and above the sand
-        Object.assign(st, { top: Math.max(8, r.top + r.height * 0.46) + "px", left: r.left + r.width / 2 + "px", transform: "translateX(-50%)", width: `min(${Math.round(r.width - 32)}px, 600px)` });
+      } else {   // during play: in the water, below the claw's resting spot and above the row of items
+        const top = Math.max(r.top + r.height * 0.2, Math.min(r.top + r.height * 0.46, r.top + r.height * 0.78 - this.el.offsetHeight - 6));
+        Object.assign(st, { top: Math.max(8, top) + "px", left: r.left + r.width / 2 + "px", transform: "translateX(-50%)", width: `min(${Math.round(r.width - 32)}px, 600px)` });
       }
     }
   },
@@ -1794,8 +1796,11 @@ function setManualPause(on) {
 }
 $("#pauseBtn").onclick = () => setManualPause(!game.manualPaused);
 // On phones the secondary tools fold behind Menu; picking one closes it again.
-$("#menuBtn").onclick = () => { const open = document.body.classList.toggle("menu-open"); $("#menuBtn").setAttribute("aria-expanded", String(open)); };
-$("#moreTools").addEventListener("click", e => { if (e.target.closest("button")) { document.body.classList.remove("menu-open"); $("#menuBtn").setAttribute("aria-expanded", "false"); } });
+function setMenu(open) { document.body.classList.toggle("menu-open", open); $("#menuBtn").setAttribute("aria-expanded", String(open)); if (open) Captions.hide(); }
+$("#menuBtn").onclick = () => setMenu(!document.body.classList.contains("menu-open"));
+document.addEventListener("keydown", e => { if (e.key === "Escape" && document.body.classList.contains("menu-open")) { setMenu(false); $("#menuBtn").focus(); } });
+document.addEventListener("click", e => { if (document.body.classList.contains("menu-open") && !e.target.closest("#moreTools, #menuBtn")) setMenu(false); });
+$("#moreTools").addEventListener("click", e => { if (e.target.closest("button")) setMenu(false); });
 $("#overlayResumeBtn").onclick = () => setManualPause(false);
 $("#welcomeForm").addEventListener("submit", e => { e.preventDefault(); startGame(); });
 $("#demoBtn").onclick = () => startGame(true);

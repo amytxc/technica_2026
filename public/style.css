@@ -111,8 +111,9 @@ a { color: var(--sodium); }
 .cabinet { position: relative; }
 .manual-pause-overlay { display: none; }
 body.manual-paused .cabinet::after { content: ""; position: absolute; inset: 0; z-index: 10; border-radius: inherit; background: repeating-linear-gradient(0deg, rgba(12,5,16,.72) 0 2px, rgba(12,5,16,.55) 2px 4px); pointer-events: none; }
+body.manual-paused .machine { position: relative; z-index: 12; }   /* Pause/Restart stay usable above the overlay */
 body.manual-paused .manual-pause-overlay { position: absolute; z-index: 11; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
-.pause-notice { background: var(--sodium); color: #2b1d00; border: 3px solid #2b1d00; border-radius: 0; padding: 6px 18px; font-family: var(--font-display); font-size: 1.1rem; letter-spacing: .04em; box-shadow: var(--hard); animation: blink 1s steps(2) infinite; }
+.pause-notice { background: var(--sodium); color: #2b1d00; border: 3px solid #2b1d00; border-radius: 0; padding: 6px 18px; font-family: var(--font-display); font-size: 1.1rem; letter-spacing: .04em; box-shadow: var(--hard); animation: blink 1s steps(2) 3; }
 body.manual-paused .manual-pause-overlay #overlayResumeBtn { min-height: 48px; font-family: var(--font-display); font-weight: 400; }
 
 /* ---------- main grid ---------- */
@@ -430,3 +431,4 @@ table.lb tr.me td { color: var(--sodium); font-weight: 700; }
 .foot { max-width: 1240px; margin: 18px auto 0; color: var(--muted); font-size: 0.8rem; }
 @media (prefers-reduced-motion: reduce) { .cap-more { animation: none; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+:root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after { animation: none !important; transition: none !important; }
