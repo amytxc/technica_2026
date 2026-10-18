@@ -3,6 +3,9 @@
 **Learn about microplastics in common items. Clean the sea.**
 Clawcean is an arcade claw machine set in a polluted ocean. Five short lessons teach which common items turn into ocean microplastics. After each lesson, the claw scans the tank and lights up the items that contain those plastics, and you grab as many as you can before you run out of tries. Each rescued item opens a card that lists its plastic ingredients, explains how it harms the ocean, and shows how to throw it away safely. You pick an ocean guide (a pirate crab, a calm jellyfish, a 100-year-old turtle…). Gemini gives the guide its personality, and ElevenLabs gives it a voice.
 
+## Try it
+https://www.clawcean.health/
+
 ## Run it
 
 ```bash
