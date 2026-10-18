@@ -1,4 +1,4 @@
-// Clawcean server: serves the game, proxies Gemini (so the API key never reaches the browser),
+// Clawcean server: serves the game, proxies Gemini and ElevenLabs (so API keys never reach the browser),
 // and keeps a shared leaderboard in data/leaderboard.json. No dependencies; Node 18+.
 "use strict";
 const http = require("http");
@@ -16,11 +16,24 @@ try {
 const PORT = Number(process.env.PORT) || 3000;
 const KEY = process.env.GEMINI_API_KEY || "";
 const MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
+const EL_KEY = process.env.ELEVENLABS_API_KEY || "";
+const EL_MODEL = process.env.ELEVENLABS_MODEL || "eleven_v4";
 const PUBLIC = path.join(__dirname, "public");
 const DATA = path.join(__dirname, "data");
 const LB_FILE = path.join(DATA, "leaderboard.json");
 
-const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png", ".svg": "image/svg+xml", ".ico": "image/x-icon" };
+// Ocean guides: each one has its own ElevenLabs voice and delivery. Premade voices work on every account;
+// set ELEVENLABS_VOICE_<GUIDE> (e.g. ELEVENLABS_VOICE_PINCH) to swap in a voice from the Voice Library or Voice Design.
+const GUIDES = {
+  coral: { voice: "cgSgspJ2msm6clMCkdW9", settings: { stability: 0.4, similarity_boost: 0.75, style: 0.45, speed: 1.0 } },   // Jessica: playful, bright
+  pinch: { voice: "N2lVS1w4EtoT3dr4eOWO", settings: { stability: 0.3, similarity_boost: 0.75, style: 0.7, speed: 1.05 } },   // Callum: husky trickster
+  jelly: { voice: "SAz9YHcvj6GT2YYXdXww", settings: { stability: 0.6, similarity_boost: 0.7, style: 0.3, speed: 0.88 } },    // River: calm, neutral
+  tuck:  { voice: "pqHfZKP75CvOlQylNhV4", settings: { stability: 0.55, similarity_boost: 0.75, style: 0.35, speed: 0.9 } },  // Bill: wise, old
+  splash:{ voice: "FGY2WhTYpPnrIDTdsKH5", settings: { stability: 0.3, similarity_boost: 0.75, style: 0.65, speed: 1.08 } }   // Laura: sunny, quirky
+};
+for (const [id, g] of Object.entries(GUIDES)) { const v = process.env["ELEVENLABS_VOICE_" + id.toUpperCase()]; if (v) g.voice = v; }
+
+const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".woff2": "font/woff2" };
 
 // index.html is written as a page fragment (so it can also be published as a hosted artifact);
 // wrap it in a standard document shell here.
@@ -79,9 +92,56 @@ async function handleGemini(req, res) {
   }
 }
 
+// --- ElevenLabs text-to-speech, cached in memory so replays and repeat lines cost no credits ---
+const ttsCache = new Map(); let ttsCacheBytes = 0;
+// ElevenLabs caps how many clips an account can generate at once, so extra requests wait in line here instead of failing with 429.
+const TTS_CONCURRENCY = Number(process.env.ELEVENLABS_CONCURRENCY) || 2;
+let ttsActive = 0; const ttsWaiting = [];
+async function ttsSlot(fn) {
+  while (ttsActive >= TTS_CONCURRENCY) await new Promise(r => ttsWaiting.push(r));
+  ttsActive++;
+  try { return await fn(); } finally { ttsActive--; const next = ttsWaiting.shift(); if (next) next(); }
+}
+function elevenLabs(voice, text, settings) {
+  return ttsSlot(async () => {
+    for (let attempt = 1; ; attempt++) {
+      const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voice)}?output_format=mp3_44100_128`, {
+        method: "POST", headers: { "content-type": "application/json", "xi-api-key": EL_KEY },
+        body: JSON.stringify({ text, model_id: EL_MODEL, voice_settings: settings })
+      });
+      if (r.status === 429 && attempt < 3) { await new Promise(res => setTimeout(res, 500 * attempt)); continue; }
+      return r;
+    }
+  });
+}
+async function handleTts(req, res) {
+  if (!EL_KEY) return send(res, 503, { error: "ElevenLabs isn't configured on the server. Add ELEVENLABS_API_KEY to .env." });
+  const ip = req.socket.remoteAddress || "x";
+  if (!allowed("tts:" + ip, 40)) return send(res, 429, { error: "Too many voice requests. Wait a minute and try again." });
+  let b; try { b = await readBody(req, 16 * 1024); } catch { return send(res, 400, { error: "Invalid request." }); }
+  const guide = GUIDES[b.guide] || GUIDES.coral;
+  const text = String(b.text || "").replace(/\s+/g, " ").trim().slice(0, 1200);
+  if (!text) return send(res, 400, { error: "No text." });
+  const key = `${guide.voice}|${EL_MODEL}|${text}`;
+  const hit = ttsCache.get(key);
+  if (hit) { res.writeHead(200, { "content-type": "audio/mpeg", "cache-control": "private, max-age=86400" }); return res.end(hit); }
+  try {
+    const r = await elevenLabs(guide.voice, text, guide.settings);
+    if (!r.ok) { const t = await r.text(); return send(res, r.status, { error: `ElevenLabs returned ${r.status}: ${t.slice(0, 200)}` }); }
+    const audio = Buffer.from(await r.arrayBuffer());
+    if (ttsCacheBytes > 60 * 1024 * 1024) { ttsCache.clear(); ttsCacheBytes = 0; }
+    ttsCache.set(key, audio); ttsCacheBytes += audio.length;
+    res.writeHead(200, { "content-type": "audio/mpeg", "cache-control": "private, max-age=86400" });
+    res.end(audio);
+  } catch (e) {
+    send(res, 502, { error: "Couldn't reach ElevenLabs: " + e.message });
+  }
+}
+
 async function handleLeaderboard(req, res) {
   if (req.method === "GET") return send(res, 200, { entries: loadLb().slice(0, 50) });
   if (req.method === "POST") {
+    if (!allowed("lb:" + (req.socket.remoteAddress || "x"), 6)) return send(res, 429, { error: "Too many scores at once. Try again in a minute." });
     let b; try { b = await readBody(req, 4096); } catch { return send(res, 400, { error: "Invalid entry." }); }
     const entry = {
       id: String(b.id || Math.random().toString(36).slice(2, 10)).replace(/[^a-z0-9]/gi, "").slice(0, 12),
@@ -98,15 +158,20 @@ async function handleLeaderboard(req, res) {
   send(res, 405, { error: "Method not allowed" });
 }
 
+// Never let one bad request take the whole server down.
+process.on("unhandledRejection", e => console.error("Request failed:", e));
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
-  if (url.pathname === "/api/health") return send(res, 200, { ok: true, gemini: !!KEY, model: MODEL });
+  if (url.pathname === "/api/health") return send(res, 200, { ok: true, gemini: !!KEY, model: MODEL, voices: !!EL_KEY });
+  if (url.pathname === "/api/tts" && req.method === "POST") return handleTts(req, res);
   if (url.pathname === "/api/gemini" && req.method === "POST") return handleGemini(req, res);
   if (url.pathname === "/api/leaderboard") return handleLeaderboard(req, res);
   // static files
-  let p = decodeURIComponent(url.pathname); if (p === "/") p = "/index.html";
+  let p;
+  try { p = decodeURIComponent(url.pathname); } catch { return send(res, 400, "Bad request", "text/plain"); }   // e.g. "/%"
+  if (p === "/") p = "/index.html";
   const file = path.normalize(path.join(PUBLIC, p));
-  if (!file.startsWith(PUBLIC)) return send(res, 403, "Forbidden", "text/plain");
+  if (!file.startsWith(PUBLIC + path.sep)) return send(res, 403, "Forbidden", "text/plain");
   fs.readFile(file, (err, buf) => {
     if (err) return send(res, 404, "Not found", "text/plain");
     const ext = path.extname(file);
@@ -122,4 +187,5 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`Clawcean running at http://localhost:${PORT}`);
   console.log(KEY ? `Gemini connected (model: ${MODEL})` : "Gemini key missing: the game runs in offline mode. Add GEMINI_API_KEY to .env.");
+  console.log(EL_KEY ? `ElevenLabs voices on (model: ${EL_MODEL})` : "ElevenLabs key missing: read-aloud uses the browser's built-in voice. Add ELEVENLABS_API_KEY to .env.");
 });

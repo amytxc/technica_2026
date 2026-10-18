@@ -1,30 +1,36 @@
 <title>Clawcean</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Clawcean: learn which ingredients turn into ocean microplastics, then use a claw machine to clean them up.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A6%80%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Azeret+Mono:wght@500;700&family=Bungee&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bungee&family=Silkscreen:wght@400;700&family=VT323&display=swap">
 <style>
+/* Jersey 15 (SIL OFL) is self-hosted. It's drawn small, so size-adjust brings it in line with the rest of the type scale. */
+@font-face { font-family: "Clawcean Body"; src: url("fonts/jersey15-latin.woff2") format("woff2"); font-display: swap; size-adjust: 128%; }
 /* Layout: an arcade claw cabinet (left) whose glass tank is the ocean, with a field-guide side panel (right); dialogs for lessons, catches and results.
-   Single committed look: night-time arcade under the sea. */
+   Single committed look: a sunset arcade. Plum room, orange cabinet, blue ocean tank. */
 :root {
   color-scheme: dark;
-  --abyss: #061320;
-  --deep: #0b2135;
-  --panel: #0f2c44;
-  --panel-2: #143a57;
-  --line: #24506f;
-  --ink: #e9f5f2;
-  --muted: #93b6c0;
+  --abyss: #150b1c;
+  --deep: #221029;
+  --panel: #2e1738;
+  --panel-2: #3d2049;
+  --line: #5e3569;
+  --ink: #fbeff3;
+  --muted: #c9a7cc;
   --coral: #ff6f59;
   --coral-ink: #2a0d07;
   --sodium: #ffd166;
   --kelp: #3ad6a5;
   --danger: #ff5c7a;
+  --sky: #7fd8ff;
   --focus: #ffd166;
   --font-display: "Bungee", "Impact", "Arial Black", system-ui, sans-serif;
-  --font-body: "Atkinson Hyperlegible", "Verdana", system-ui, sans-serif;
-  --font-mono: "Azeret Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-body: "Clawcean Body", "Atkinson Hyperlegible", "Verdana", system-ui, sans-serif;
+  --font-mono: "Silkscreen", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-digits: "VT323", "Silkscreen", ui-monospace, monospace;
+  --font-game: "Bungee", "Impact", system-ui, sans-serif;
   --step--1: 0.86rem; --step-0: 1rem; --step-1: 1.2rem; --step-2: 1.5rem; --step-3: 2.1rem; --step-4: 3rem;
   --radius: 14px;
 }
@@ -34,19 +40,30 @@
 }
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
+html { font-synthesis: none; }   /* no smeared fake-bold on pixel fonts */
 body {
   margin: 0; background: var(--abyss); color: var(--ink);
-  font-family: var(--font-body); font-size: var(--step-0); line-height: 1.5;
+  font-family: var(--font-body); font-size: 1.04rem; line-height: 1.5;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 12px 32px;
-  background-image: radial-gradient(1200px 500px at 30% -10%, #12375a 0%, transparent 60%), radial-gradient(800px 400px at 100% 100%, #0d2a3c 0%, transparent 70%);
+  background-image: radial-gradient(1200px 520px at 30% -10%, #4a1d4f 0%, transparent 60%), radial-gradient(900px 420px at 100% 100%, rgba(255,111,89,.16) 0%, transparent 70%);
   background-attachment: fixed;
 }
 :root[data-font="large"] { font-size: 118%; }
+/* Easy-read: swaps the pixel fonts for Atkinson Hyperlegible, a typeface designed for low-vision readers */
+:root[data-easy="on"] { --font-game: "Atkinson Hyperlegible", system-ui, sans-serif; --font-body: "Atkinson Hyperlegible", "Verdana", system-ui, sans-serif; --font-mono: "Atkinson Hyperlegible", "Verdana", system-ui, sans-serif; --font-digits: "Atkinson Hyperlegible", system-ui, sans-serif; }
+
+/* pixel art: icons take the surrounding text color; sprites stay crisp at any size */
+.ic { width: 1.25em; height: 1.25em; display: inline-block; vertical-align: -0.25em; flex: none; }
+.spr { image-rendering: pixelated; image-rendering: crisp-edges; width: 48px; height: 48px; display: inline-block; vertical-align: middle; flex: none; }
+.spr.xs { width: 24px; height: 24px; } .spr.sm { width: 32px; height: 32px; } .spr.lg { width: 64px; height: 64px; } .spr.xl { width: 96px; height: 96px; }
+.spr.inl { width: 1.15em; height: 1.15em; vertical-align: -0.15em; }
+.ic.red { color: var(--danger); } .ic.gold { color: var(--sodium); } .ic.kelp { color: var(--kelp); } .ic.dim { color: var(--line); }
+.glow { filter: drop-shadow(0 0 6px currentColor); }
 button, input, textarea, select { font: inherit; color: inherit; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0 !important; }
 a { color: var(--sodium); }
 
 /* ---------- top bar ---------- */
@@ -55,6 +72,7 @@ a { color: var(--sodium); }
 .brand h1 { font-family: var(--font-display); font-weight: 400; font-size: var(--step-2); margin: 0; letter-spacing: 0.02em; color: var(--sodium); text-shadow: 0 0 18px rgba(255, 209, 102, .35); }
 .brand span { color: var(--muted); font-size: var(--step--1); }
 .btn {
+  box-shadow: 0 3px 0 rgba(0,0,0,.35);
   border: 1px solid var(--line); background: var(--panel); color: var(--ink);
   padding: 9px 14px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
   min-height: 44px; font-weight: 700; font-size: var(--step--1); transition: background .15s, transform .1s;
@@ -88,18 +106,22 @@ a { color: var(--sodium); }
   background-origin: border-box; background-clip: padding-box, border-box;
 }
 .marquee .title { font-family: var(--font-display); font-size: clamp(1.4rem, 4.4vw, 2.6rem); color: var(--sodium); line-height: 1; text-shadow: 0 0 14px rgba(255,209,102,.6), 0 3px 0 #7a2b00; letter-spacing: .04em; }
-.marquee .sub { font-family: var(--font-mono); font-size: 0.72rem; color: #ffb4a6; letter-spacing: .18em; text-transform: uppercase; margin-top: 4px; }
-.hud { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+.marquee .sub { font-family: var(--font-mono); font-size: 0.72rem; color: #ffb4a6; letter-spacing: .08em; text-transform: uppercase; margin-top: 4px; }
+.hud { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
 .hud div { background: #1b0a0b; border-radius: 10px; padding: 6px 10px; min-width: 0; }
-.hud small { display: block; font-size: 0.68rem; letter-spacing: .12em; text-transform: uppercase; color: #ffb4a6; }
-.hud b { font-family: var(--font-mono); font-size: 1.15rem; color: #ffe9b0; font-variant-numeric: tabular-nums; white-space: nowrap; }
-@media (max-width: 560px) { .hud { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.hud small { display: block; font-size: 0.68rem; letter-spacing: .05em; text-transform: uppercase; color: #ffb4a6; }
+.hud b { font-family: var(--font-digits); font-size: 1.7rem; line-height: 1; color: #ffe9b0; font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (max-width: 560px) { .hud { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.hud b.lives { display: flex; gap: 2px; align-items: center; min-height: 1.7rem; }
+.hud b.lives .ic { width: 22px; height: 22px; }
 .tank { position: relative; border-radius: 12px; overflow: hidden; background: #08263d; box-shadow: inset 0 0 0 4px #1b0a0b, inset 0 0 40px rgba(0,0,0,.5); }
 .tank canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; touch-action: none; }
-.tank::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, rgba(255,255,255,.10) 0%, transparent 28%, transparent 70%, rgba(255,255,255,.05) 100%); }
+.tank::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.12) 0 1px, transparent 1px 3px), linear-gradient(115deg, rgba(255,255,255,.10) 0%, transparent 28%, transparent 70%, rgba(255,255,255,.05) 100%); }
+:root[data-contrast="high"] .tank::after { display: none; }
 .banner {
+  display: flex; align-items: center; gap: 8px; justify-content: center; z-index: 1;
   position: absolute; left: 50%; top: 14%; transform: translateX(-50%);
-  background: rgba(6,19,32,.86); border: 1px solid var(--line); border-radius: 999px; padding: 8px 18px;
+  background: rgba(21,11,28,.86); border: 1px solid var(--line); border-radius: 999px; padding: 8px 18px;
   font-weight: 700; text-align: center; max-width: 90%; pointer-events: none; transition: opacity .3s;
 }
 .banner.good { border-color: var(--kelp); color: var(--kelp); }
@@ -111,9 +133,10 @@ a { color: var(--sodium); }
   border: none; cursor: pointer; font-family: var(--font-display); color: #2a0d07; touch-action: manipulation;
   box-shadow: 0 5px 0 rgba(0,0,0,.35), inset 0 2px 0 rgba(255,255,255,.5);
 }
-.joy button { width: 64px; height: 56px; border-radius: 14px; background: #ffe3dc; font-size: 1.4rem; }
+.joy button { width: 64px; height: 56px; border-radius: 14px; background: #ffe3dc; display: grid; place-items: center; }
+.joy button .ic { width: 30px; height: 30px; }
 .joy button:active, .drop:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
-.drop { height: 64px; padding: 0 28px; border-radius: 999px; background: var(--sodium); font-size: 1.25rem; letter-spacing: .05em; }
+.drop { height: 64px; padding: 0 28px; border-radius: 999px; background: var(--sodium); font-size: 1.25rem; letter-spacing: .05em; display: inline-flex; align-items: center; gap: 8px; }
 .drop[disabled], .joy button[disabled] { opacity: .5; cursor: not-allowed; }
 .keys { margin-left: auto; color: #ffe3dc; font-size: var(--step--1); }
 .keys kbd { font-family: var(--font-mono); background: #2a0f12; border-radius: 6px; padding: 1px 6px; font-size: 0.78rem; }
@@ -122,7 +145,7 @@ a { color: var(--sodium); }
 /* side panel */
 .panel { background: var(--deep); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .panel h2 { font-family: var(--font-display); font-weight: 400; font-size: var(--step-1); margin: 0; color: var(--ink); text-wrap: balance; }
-.eyebrow { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); }
+.eyebrow { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 0.82rem; background: var(--panel); }
 .chip.plastic { border-color: var(--sodium); color: var(--sodium); }
@@ -134,7 +157,7 @@ a { color: var(--sodium); }
 .log { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 220px; overflow: auto; }
 .log li button { width: 100%; text-align: left; display: flex; gap: 10px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; cursor: pointer; }
 .log li button:hover { background: var(--panel-2); }
-.log .em { font-size: 1.4rem; }
+.log .spr { width: 32px; height: 32px; }
 .log small { color: var(--muted); display: block; }
 .empty { color: var(--muted); font-size: var(--step--1); margin: 0; }
 .chat { display: flex; flex-direction: column; gap: 8px; }
@@ -150,19 +173,38 @@ a { color: var(--sodium); }
 .suggest button { background: transparent; border: 1px dashed var(--line); border-radius: 999px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer; color: var(--muted); }
 .suggest button:hover { color: var(--ink); border-color: var(--muted); }
 
-/* ---------- dialogs ---------- */
+/* ---------- dialogs: arcade-cabinet popups ---------- */
 dialog {
-  border: 1px solid var(--line); border-radius: 20px; background: var(--deep); color: var(--ink);
-  width: min(680px, calc(100vw - 32px)); max-height: calc(100vh - 40px); padding: 0; overflow: auto;
-  box-shadow: 0 40px 80px rgba(0,0,0,.6);
+  border: 6px solid transparent; border-radius: 24px; color: var(--ink); padding: 0;
+  width: min(700px, calc(100vw - 24px)); max-height: calc(100vh - 32px); overflow: auto;
+  background: linear-gradient(var(--deep), var(--deep)) padding-box, repeating-linear-gradient(90deg, var(--sodium) 0 10px, #7a4b00 10px 24px) border-box;
+  box-shadow: 0 0 0 3px #2a0f12, 0 0 48px rgba(255,209,102,.22), 0 40px 80px rgba(0,0,0,.6);
+  font-size: 1.06rem;
 }
-dialog::backdrop { background: rgba(2, 8, 14, .72); backdrop-filter: blur(3px); }
-.dlg { padding: 24px; display: grid; gap: 16px; }
-.dlg h2 { font-family: var(--font-display); font-weight: 400; font-size: var(--step-3); line-height: 1.05; margin: 0; text-wrap: balance; color: var(--sodium); }
+dialog.wide { width: min(880px, calc(100vw - 24px)); }
+:root[data-contrast="high"] dialog { background: #000; border: 4px solid #fff; }
+dialog::backdrop { background: rgba(12, 5, 16, .78); backdrop-filter: blur(3px); }
+.dlg { padding: 22px clamp(14px, 4vw, 28px) 24px; display: grid; gap: 16px; }
+.dlg h2 { font-family: var(--font-display); font-weight: 400; font-size: clamp(1.6rem, 5vw, 2.3rem); line-height: 1.05; margin: 0; text-wrap: balance; color: var(--sodium); text-shadow: 0 0 16px rgba(255,209,102,.45), 0 3px 0 #7a2b00; letter-spacing: .02em; }
 .dlg h3 { margin: 0; font-size: var(--step-1); }
 .dlg p { margin: 0; max-width: 62ch; }
+.dlg-head { display: grid; gap: 8px; justify-items: center; text-align: center; }
+.dlg-head p { max-width: 50ch; font-size: 1.1rem; }
+.dlg-head .eyebrow { background: #2a0f12; color: #ffb4a6; padding: 3px 12px; border-radius: 999px; }
+.hero-art { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; justify-content: center; line-height: 1; filter: drop-shadow(0 4px 0 rgba(0,0,0,.35)); }
+.hero-art .spr.lg { width: clamp(44px, 13vw, 64px); height: clamp(44px, 13vw, 64px); }
+.dlg > * { min-width: 0; }   /* no single row (like the guide lineup) can stretch a popup wider than a phone */
+.hero-art .ic { width: 64px; height: 64px; color: var(--sodium); filter: drop-shadow(0 0 10px rgba(255,209,102,.55)); }
+.hero-art .ic.red { color: var(--danger); filter: drop-shadow(0 0 10px rgba(255,92,122,.5)); }
+.hero-art .ic.kelp { color: var(--kelp); filter: drop-shadow(0 0 10px rgba(58,214,165,.5)); }
+.dlg .btn { font-size: .95rem; }
+.dlg .btn.primary, .dlg .btn.gold { font-family: var(--font-display); font-weight: 400; letter-spacing: .03em; box-shadow: 0 4px 0 rgba(0,0,0,.45), inset 0 2px 0 rgba(255,255,255,.4); }
+.dlg .btn.primary:active, .dlg .btn.gold:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.45); }
+.btn.mini { min-height: 32px; padding: 3px 12px; font-size: .8rem; white-space: nowrap; flex: none; }
 .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .row.end { justify-content: flex-end; }
+.row.center { justify-content: center; }
+.center-note { text-align: center; color: var(--muted); font-family: var(--font-mono); font-size: .8rem; letter-spacing: .04em; margin: 0 auto !important; }
 .field { display: grid; gap: 6px; }
 .field label { font-weight: 700; font-size: var(--step--1); }
 .field input, .field textarea, .field select { background: var(--abyss); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; width: 100%; }
@@ -170,62 +212,157 @@ dialog::backdrop { background: rgba(2, 8, 14, .72); backdrop-filter: blur(3px); 
 .toggle { display: flex; gap: 10px; align-items: flex-start; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; cursor: pointer; }
 .toggle input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--sodium); flex: none; }
 .toggle small { display: block; color: var(--muted); }
-.hero-emoji { font-size: 3rem; line-height: 1; }
-.lesson-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: grid; gap: 10px; }
-.lesson-card h3 { font-size: var(--step-2); text-wrap: balance; }
-.lesson-card .stat { font-family: var(--font-mono); color: var(--sodium); font-size: 0.85rem; }
-.dots { display: flex; gap: 6px; }
-.dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--panel-2); }
-.dots i.on { background: var(--sodium); }
-.quiz { display: grid; gap: 8px; }
-.quiz button { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; cursor: pointer; }
-.quiz button:hover:not([disabled]) { background: var(--panel-2); }
-.quiz button.right { border-color: var(--kelp); background: rgba(58,214,165,.12); }
-.quiz button.right::after { content: "  ✓ Correct"; color: var(--kelp); font-weight: 700; }
-.quiz button.wrong { border-color: var(--danger); background: rgba(255,92,122,.10); }
-.quiz button.wrong::after { content: "  ✕ Not this one"; color: var(--danger); font-weight: 700; }
+.toggles.two { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+/* picture tiles: one idea each, icon first */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.tile { --c: var(--sodium); background: var(--panel); border: 2px solid var(--line); border-top: 6px solid var(--c); border-radius: 16px; padding: 14px; display: grid; gap: 6px; align-content: start; text-align: center; }
+.tile .ico { height: 64px; display: grid; place-items: center; color: var(--c); }
+.tile .ico .ic { width: 48px; height: 48px; filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 55%, transparent)); }
+.tile .ico .spr { width: 64px; height: 64px; }
+.tile h3 { font-family: var(--font-display); font-weight: 400; font-size: 1.02rem; color: var(--c); line-height: 1.15; }
+.tile p { margin: 0 auto; font-size: 1.02rem; line-height: 1.45; }
+.tile .stat { font-family: var(--font-mono); font-size: .74rem; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 6px; margin-top: 4px; }
+.tile.c-coral { --c: var(--coral); } .tile.c-kelp { --c: var(--kelp); } .tile.c-sky { --c: var(--sky); }
+.tile .dont { color: #ffc2cd; font-size: .95rem; }
+
+/* quick check */
+.quiz-box { background: #1b0a0b; border: 2px solid #3a1518; border-radius: 16px; padding: 14px; display: grid; gap: 12px; }
+.quiz-q { font-weight: 700; font-size: 1.15rem; text-align: center; display: grid; gap: 6px; justify-items: center; }
+.quiz-q .eyebrow { color: var(--sodium); display: inline-flex; align-items: center; gap: 4px; }
+.quiz { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+.quiz button { display: flex; align-items: center; gap: 10px; text-align: left; background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 10px 12px; cursor: pointer; font-weight: 700; min-height: 52px; }
+.quiz button:hover:not([disabled]) { background: var(--panel-2); border-color: var(--sodium); }
+.quiz button[disabled] { cursor: default; }
+.quiz .k { font-family: var(--font-display); font-weight: 400; background: var(--sodium); color: #2b1d00; width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; flex: none; }
+.quiz button.right { border-color: var(--kelp); background: rgba(58,214,165,.15); } .quiz button.right .k { background: var(--kelp); }
+.quiz button.wrong { border-color: var(--danger); background: rgba(255,92,122,.12); } .quiz button.wrong .k { background: var(--danger); }
+.quiz button.right::after { content: "✓"; margin-left: auto; color: var(--kelp); font-size: 1.3rem; }
+.quiz button.wrong::after { content: "✕"; margin-left: auto; color: var(--danger); font-size: 1.3rem; }
 .feedback { border-left: 4px solid var(--kelp); padding: 8px 12px; background: var(--panel); border-radius: 0 10px 10px 0; }
 .feedback.bad { border-left-color: var(--danger); }
-.catch-head { display: flex; gap: 16px; align-items: center; }
-.catch-orb { width: 96px; height: 96px; flex: none; border-radius: 50%; display: grid; place-items: center; font-size: 3.2rem; background: radial-gradient(circle, rgba(255,209,102,.5) 0%, rgba(255,209,102,.08) 60%, transparent 70%); animation: pulse 1.6s ease-in-out infinite; }
+
+/* catch card */
+.catch-head { display: grid; gap: 6px; justify-items: center; text-align: center; }
+.catch-orb { width: 120px; height: 120px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle, rgba(255,209,102,.5) 0%, rgba(255,209,102,.08) 60%, transparent 70%); animation: pulse 1.6s ease-in-out infinite; }
 @keyframes pulse { 50% { transform: scale(1.06); filter: drop-shadow(0 0 12px rgba(255,209,102,.6)); } }
-.points { font-family: var(--font-mono); color: var(--kelp); font-weight: 700; }
-.section-label { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.points { font-family: var(--font-mono); color: var(--kelp); font-weight: 700; background: rgba(58,214,165,.12); border: 1px solid var(--kelp); border-radius: 999px; padding: 2px 12px; }
+.inside { display: grid; gap: 6px; justify-items: center; text-align: center; }
+.inside .chips { justify-content: center; }
+.town-note { text-align: center; color: var(--muted); font-size: .9rem; margin: 0 auto !important; }
+.section-label { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
 .dispose { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
-.ai-box { background: var(--panel); border: 1px dashed var(--kelp); border-radius: 12px; padding: 12px 14px; font-size: 0.95rem; }
+.ai-box { background: var(--panel); border: 2px dashed var(--kelp); border-radius: 14px; padding: 12px 14px; font-size: 1rem; }
 .ai-box p { margin: 0 0 6px; } .ai-box ul { margin: 4px 0; padding-left: 18px; }
-.ai-tag { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--kelp); margin-bottom: 6px; display: block; }
-.bars { display: grid; gap: 8px; }
-.bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; font-size: 0.9rem; }
-.bar .track { grid-column: 1 / -1; height: 10px; background: var(--panel-2); border-radius: 5px; overflow: hidden; }
-.bar .fill { height: 100%; background: var(--kelp); border-radius: 5px; }
-.bar b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-.bigscore { display: flex; gap: 20px; flex-wrap: wrap; }
-.bigscore div { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; flex: 1; min-width: 130px; }
-.bigscore b { font-family: var(--font-mono); font-size: var(--step-3); display: block; color: var(--sodium); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.ai-tag { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: .04em; text-transform: uppercase; color: var(--kelp); margin-bottom: 6px; display: block; }
+
+/* scores */
+.stars { display: inline-flex; gap: 6px; color: var(--sodium); line-height: 1; }
+.stars .ic { width: 40px; height: 40px; filter: drop-shadow(0 0 8px rgba(255,209,102,.5)); }
+.stars .ic.off { color: var(--line); filter: none; }
+.stars.sm { justify-content: center; } .stars.sm .ic { width: 18px; height: 18px; }
+.bigscore { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
+.bigscore div { background: var(--panel); border: 2px solid var(--line); border-radius: 16px; padding: 12px; text-align: center; }
+.bigscore .ico { display: block; color: var(--sodium); }
+.bigscore .ico .ic { width: 30px; height: 30px; }
+.bigscore b { font-family: var(--font-display); font-weight: 400; font-size: clamp(1.5rem, 6vw, 2.1rem); display: block; color: var(--sodium); font-variant-numeric: tabular-nums; line-height: 1.1; }
 .bigscore small { color: var(--muted); }
-table.lb { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+.sprite-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.mods { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.mods div { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px; text-align: center; display: grid; gap: 2px; }
+.mods .ico { height: 40px; display: grid; place-items: center; color: var(--sky); }
+.mods .ico .ic { width: 32px; height: 32px; } .mods .ico .spr { width: 40px; height: 40px; }
+.mods small { color: var(--muted); font-size: .8rem; }
+table.lb { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
 table.lb th, table.lb td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
 table.lb td.num, table.lb th.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 table.lb tr.me td { color: var(--sodium); font-weight: 700; }
 .tag { font-size: 0.7rem; border: 1px solid var(--line); border-radius: 999px; padding: 1px 6px; color: var(--muted); margin-left: 6px; }
-.lens-drop { border: 2px dashed var(--line); border-radius: 14px; padding: 18px; text-align: center; color: var(--muted); }
-.lens-drop img { max-height: 180px; border-radius: 10px; margin: 0 auto 8px; display: block; }
-.verdict { font-family: var(--font-display); font-size: var(--step-1); }
+
+/* label lens */
+.lens-drop { border: 2px dashed var(--line); border-radius: 16px; padding: 18px; text-align: center; color: var(--muted); display: grid; gap: 8px; justify-items: center; }
+.lens-drop img { max-height: 180px; border-radius: 10px; }
+.lens-result { background: var(--panel); border: 2px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 12px; }
+.verdict { font-family: var(--font-display); font-size: var(--step-1); display: flex; align-items: center; gap: 8px; }
 .verdict.contains { color: var(--danger); } .verdict.free { color: var(--kelp); } .verdict.unclear { color: var(--sodium); }
+
+/* coral chat (its own popup, so the game pauses underneath) */
+.coral-dlg .chat-log { max-height: min(46vh, 420px); min-height: 180px; background: var(--abyss); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+.coral-dlg .msg { font-size: 1rem; }
+.paused-tag { font-family: var(--font-mono); font-size: .74rem; letter-spacing: .06em; color: var(--sodium); border: 1px solid var(--sodium); border-radius: 999px; padding: 2px 10px; }
+.coral-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: grid; gap: 10px; }
+.coral-card .who { display: flex; gap: 10px; align-items: center; line-height: 1.3; }
+.coral-av { line-height: 0; }
+.coral-av .spr { width: 48px; height: 48px; }
+.coral-last { margin: 0; font-size: .9rem; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ocean guide picker */
+.guides { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; }
+.guide { position: relative; display: grid; gap: 2px; justify-items: center; align-content: start; text-align: center; background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 10px 8px; cursor: pointer; }
+.guide:hover { background: var(--panel-2); }
+.guide:has(input:checked) { border-color: var(--sodium); background: var(--panel-2); box-shadow: 0 0 0 3px rgba(255,209,102,.25); }
+.guide:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+.guide .em { line-height: 0; }
+.guide .em .spr { width: 56px; height: 56px; }
+.guide b { font-family: var(--font-display); font-weight: 400; font-size: .9rem; color: var(--sodium); }
+.guide small { color: var(--muted); font-size: .76rem; line-height: 1.3; }
+.guide .pr { font-family: var(--font-mono); font-size: .68rem; color: var(--kelp); }
+.guide .hear { margin-top: 4px; }
+
+/* guide captions: an RPG dialogue box. It's a popover so it can sit above open popups; it never takes clicks. */
+.caption { position: fixed; inset: auto; margin: 0; padding: 10px 16px 12px 10px; width: min(640px, calc(100vw - 24px));
+  border: 4px solid var(--sodium); border-radius: 14px; background: rgba(21, 11, 28, .94); color: #fff8ec; pointer-events: none;
+  box-shadow: 0 0 0 3px #2a0f12, 0 0 24px rgba(255,209,102,.25), 0 14px 30px rgba(0,0,0,.55); overflow: visible; }
+.caption:popover-open { display: flex; gap: 12px; align-items: center; }
+.caption.no-popover { display: none; z-index: 50; } .caption.no-popover.show { display: flex; gap: 12px; align-items: center; }
+.cap-face { width: 68px; height: 68px; flex: none; border: 3px solid var(--sodium); border-radius: 10px; background: radial-gradient(circle at 50% 40%, var(--panel-2), var(--abyss)); display: grid; place-items: center; }
+.cap-face .spr { width: 56px; height: 56px; }
+.cap-body { min-width: 0; flex: 1; }
+.cap-name { display: inline-block; font-family: var(--font-display); font-size: .78rem; letter-spacing: .04em; color: #2b1d00; background: var(--sodium); padding: 1px 10px; border-radius: 6px; margin-bottom: 4px; }
+.cap-text { margin: 0; font-family: var(--font-game); font-size: 1.02rem; line-height: 1.35; min-height: 2.7em; text-wrap: pretty; }
+.cap-more { position: absolute; right: 12px; bottom: 6px; color: var(--sodium); font-size: .8rem; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+:root[data-contrast="high"] .caption { background: #000; border-color: #fff; }
+/* small screens: a compact box that sits over the HUD instead of covering the short tank */
+.caption.compact { padding: 6px 10px 8px 6px; gap: 8px; border-width: 3px; }
+.caption.compact .cap-face { width: 44px; height: 44px; border-width: 2px; } .caption.compact .cap-face .spr { width: 36px; height: 36px; }
+.caption.compact .cap-text { font-size: .86rem; min-height: 2.4em; } .caption.compact .cap-name { font-size: .66rem; }
+
+/* before / after comparison of the tank */
+.ba { --pos: 50%; position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; border: 3px solid var(--sodium); background: #08263d; }
+.ba img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ba .ba-before { clip-path: inset(0 calc(100% - var(--pos)) 0 0); }
+.ba::after { content: ""; position: absolute; top: 0; bottom: 0; left: var(--pos); width: 4px; margin-left: -2px; background: var(--sodium); box-shadow: 0 0 10px rgba(255,209,102,.7); pointer-events: none; }
+.ba-tag { position: absolute; top: 8px; font-family: var(--font-mono); font-size: .72rem; background: rgba(21,11,28,.85); color: var(--sodium); padding: 2px 8px; border-radius: 6px; pointer-events: none; }
+.ba-tag.l { left: 8px; } .ba-tag.r { right: 8px; }
+.ba input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; margin: 0; }
+.ba:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 3px; }
+.friend { display: flex; gap: 10px; align-items: center; justify-content: center; background: var(--panel); border: 2px dashed var(--kelp); border-radius: 14px; padding: 8px 12px; color: var(--kelp); }
+
+/* demo checklist */
+.tour { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.tour li { display: flex; gap: 8px; align-items: center; font-size: .92rem; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; min-height: 40px; }
+.tour li.done { border-color: var(--kelp); color: var(--kelp); }
+.tour li > :last-child { margin-left: auto; }
+.tour li > .ic { color: var(--sky); } .tour li.done > .ic { color: var(--kelp); }
+.tour .chk { font-family: var(--font-mono); font-weight: 700; }
+.tour.big { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+
 .muted { color: var(--muted); }
 .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--muted); border-top-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .foot { max-width: 1240px; margin: 18px auto 0; color: var(--muted); font-size: 0.8rem; }
+@media (prefers-reduced-motion: reduce) { .cap-more { animation: none; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 
 <header class="topbar">
   <div class="brand"><h1>Clawcean</h1><span>Learn the ingredients. Clean the sea.</span></div>
   <span class="ai-pill" id="aiPill" title="Gemini status">Gemini: checking…</span>
-  <button class="btn" id="lensBtn" type="button">🔍 Label Lens</button>
-  <button class="btn" id="lbBtn" type="button">🏆 Leaderboard</button>
-  <button class="btn" id="settingsBtn" type="button" aria-label="Settings and accessibility">⚙ Settings</button>
+  <button class="btn" id="coralBtn" type="button"><i data-ic="message"></i> Ask <span class="g-name">Coral</span></button>
+  <button class="btn" id="lensBtn" type="button"><i data-ic="search"></i> Label Lens</button>
+  <button class="btn" id="lbBtn" type="button"><i data-ic="trophy"></i> Leaderboard</button>
+  <button class="btn" id="settingsBtn" type="button" aria-label="Settings and accessibility"><i data-ic="settings-cog"></i> Settings</button>
 </header>
 
 <main class="stage">
@@ -235,10 +372,11 @@ table.lb tr.me td { color: var(--sodium); font-weight: 700; }
       <div class="sub" id="marqueeSub">Microplastic rescue · insert curiosity</div>
     </div>
     <div class="hud" role="group" aria-label="Game status">
-      <div><small>Module</small><b id="hudModule">—</b></div>
+      <div><small>Dive</small><b id="hudModule">—</b></div>
       <div><small>Rescued</small><b id="hudRound">0 / 0</b></div>
       <div><small>Score</small><b id="hudScore">0</b></div>
       <div><small id="hudTimerLabel">Timer</small><b id="hudTimer">—</b></div>
+      <div><small>Tries</small><b class="lives" id="hudLives" aria-live="polite">—</b></div>
     </div>
     <div class="tank">
       <canvas id="tank" width="960" height="540" tabindex="0" role="img" aria-label="Ocean tank with floating plastic items and a claw"></canvas>
@@ -246,8 +384,8 @@ table.lb tr.me td { color: var(--sodium); font-weight: 700; }
     </div>
     <div class="controls">
       <div class="joy">
-        <button type="button" id="leftBtn" aria-label="Move claw left">◀</button>
-        <button type="button" id="rightBtn" aria-label="Move claw right">▶</button>
+        <button type="button" id="leftBtn" aria-label="Move claw left"><i data-ic="chevron-left"></i></button>
+        <button type="button" id="rightBtn" aria-label="Move claw right"><i data-ic="chevron-right"></i></button>
       </div>
       <button type="button" class="drop" id="dropBtn">DROP</button>
       <p class="keys" id="keysHint"><kbd>←</kbd> <kbd>→</kbd> move · <kbd>Space</kbd> drop · <kbd>T</kbd> next target (Calm mode)</p>
@@ -259,7 +397,11 @@ table.lb tr.me td { color: var(--sodium); font-weight: 700; }
       <div class="eyebrow" id="panelEyebrow">Field guide</div>
       <h2 id="panelTitle">Five dives, twenty pieces of plastic</h2>
     </div>
-    <div class="progress" id="modProgress" aria-label="Module progress"></div>
+    <div class="progress" id="modProgress" aria-label="Dive progress"></div>
+    <div id="tourBox" hidden>
+      <div class="section-label">Demo checklist · <span id="tourCount">0</span></div>
+      <ul class="tour" id="tourList"></ul>
+    </div>
     <div>
       <div class="section-label">Claw is tuned to</div>
       <div class="chips" id="panelChips"><span class="chip">Finish a lesson to calibrate</span></div>
@@ -269,53 +411,65 @@ table.lb tr.me td { color: var(--sodium); font-weight: 700; }
       <ul class="log" id="catchLog"></ul>
       <p class="empty" id="logEmpty">Nothing rescued yet. Every item you pull out opens its ingredient card.</p>
     </div>
-    <div class="chat" aria-label="Ask Coral, the Gemini ocean guide">
-      <div class="section-label">Ask Coral · ocean guide <span class="muted" id="coralMode"></span></div>
-      <div class="chat-log" id="chatLog" aria-live="polite">
-        <div class="msg bot"><p>Hi, I'm Coral. Ask me anything about microplastics, labels or recycling. I'll keep it short.</p></div>
-      </div>
+    <div class="coral-card">
+      <div class="who"><span class="coral-av g-art" aria-hidden="true"></span><div><b class="g-name">Coral</b> · ocean guide <small class="muted" id="coralMode"></small><br><small class="muted">Chatting pauses the game.</small></div></div>
+      <p class="coral-last" id="coralLast">Ask me anything about plastic, labels or recycling.</p>
       <div class="suggest" id="suggest"></div>
-      <form id="chatForm">
-        <label class="sr-only" for="chatInput">Ask Coral a question</label>
-        <input id="chatInput" autocomplete="off" placeholder="Why can't filters catch microbeads?">
-        <button class="btn primary" type="submit">Ask</button>
-      </form>
+      <button class="btn primary" type="button" id="coralOpen"><i data-ic="message"></i> Chat with <span class="g-name">Coral</span></button>
     </div>
   </aside>
 </main>
 <p class="foot">Facts come from published research and agencies listed in the project README. Waste rules differ by town: check your local recycling guide.</p>
 
 <div class="sr-only" aria-live="polite" id="live"></div>
+<div id="caption" class="caption" popover="manual" aria-hidden="true">
+  <div class="cap-face" id="capFace"></div>
+  <div class="cap-body"><span class="cap-name" id="capName"></span><p class="cap-text" id="capText"></p></div>
+  <span class="cap-more">▼</span>
+</div>
 <div class="sr-only" aria-live="assertive" id="liveUrgent"></div>
 
 <!-- Welcome -->
-<dialog id="welcomeDlg" aria-labelledby="welcomeTitle">
+<dialog id="welcomeDlg" class="wide" aria-labelledby="welcomeTitle">
   <form class="dlg" method="dialog" id="welcomeForm">
-    <div class="hero-emoji" aria-hidden="true">🦀🌊</div>
-    <h2 id="welcomeTitle">Dive in and clean the sea</h2>
-    <p>Microplastics are pieces of plastic smaller than 5&nbsp;mm. Many start as ingredients in things we use every day. You'll take <b>5 quick lessons</b>. After each one, the claw machine lights up the items in the ocean made with those ingredients. Grab as many as you can. Your turn ends when you miss.</p>
+    <div class="dlg-head">
+      <div class="hero-art" aria-hidden="true" id="welcomeCast"></div>
+      <h2 id="welcomeTitle">Clean up the sea!</h2>
+      <p>Tiny bits of plastic are filling the ocean, and lots of them start in our homes. Learn where they hide, then grab them with the claw!</p>
+    </div>
+    <div class="tiles">
+      <div class="tile"><div class="ico" aria-hidden="true"><i data-ic="book-open"></i></div><h3>1 · Learn</h3><p>3 quick facts</p></div>
+      <div class="tile c-kelp"><div class="ico" aria-hidden="true"><i data-ic="check"></i></div><h3>2 · Check</h3><p>Get it right for a <i data-ic="heart-full" class="red"></i> bonus try</p></div>
+      <div class="tile c-coral"><div class="ico" aria-hidden="true"><i data-spr="bag"></i></div><h3>3 · Grab</h3><p>Catch the glowing plastic</p></div>
+    </div>
+    <p class="center-note">5 dives · 20 pieces of plastic · 1 try per dive (+1 for a right answer)</p>
+    <fieldset class="field" style="border:0;padding:0;margin:0;min-width:0">
+      <legend style="font-weight:700;font-size:var(--step--1);margin-bottom:6px">Pick your ocean guide</legend>
+      <div class="guides" id="guidePick"></div>
+    </fieldset>
     <div class="field">
       <label for="playerName">Your name for the leaderboard</label>
       <input id="playerName" maxlength="20" placeholder="e.g. Sea Otter" autocomplete="nickname">
     </div>
-    <div class="toggles">
-      <label class="toggle"><input type="checkbox" id="optCalm"><span><b>Calm mode</b><small>No turn timer, a wider grip, tap-to-aim and a "jump to next target" key. Scores get a Calm tag.</small></span></label>
-      <label class="toggle"><input type="checkbox" id="optSpeak"><span><b>Read lessons aloud</b><small>Uses your device's voice to read each card and catch.</small></span></label>
+    <div class="toggles two">
+      <label class="toggle"><input type="checkbox" id="optCalm"><span><b><i data-ic="moon"></i> Calm mode</b><small>No timer, easier grabs</small></span></label>
+      <label class="toggle"><input type="checkbox" id="optSpeak"><span><b><i data-ic="volume-2"></i> Auto-read</b><small>Your guide reads each card as it opens</small></span></label>
     </div>
-    <div class="row end">
-      <button class="btn" type="button" id="welcomeSettings">More settings</button>
-      <button class="btn primary" type="submit" id="startBtn">Start lesson 1 →</button>
+    <div class="row center">
+      <button class="btn" type="button" id="welcomeSettings"><i data-ic="settings-cog"></i> Settings</button>
+      <button class="btn gold" type="button" id="demoBtn"><i data-ic="play"></i> Quick demo</button>
+      <button class="btn primary" type="submit" id="startBtn">Start game →</button>
     </div>
   </form>
 </dialog>
 
 <!-- Lesson -->
-<dialog id="lessonDlg" aria-labelledby="lessonTitle">
+<dialog id="lessonDlg" class="wide" aria-labelledby="lessonTitle">
   <div class="dlg" id="lessonBody"></div>
 </dialog>
 
 <!-- Catch -->
-<dialog id="catchDlg" aria-labelledby="catchTitle">
+<dialog id="catchDlg" class="wide" aria-labelledby="catchTitle">
   <div class="dlg" id="catchBody"></div>
 </dialog>
 
@@ -325,33 +479,40 @@ table.lb tr.me td { color: var(--sodium); font-weight: 700; }
 </dialog>
 
 <!-- Final -->
-<dialog id="finalDlg" aria-labelledby="finalTitle">
+<dialog id="finalDlg" class="wide" aria-labelledby="finalTitle">
   <div class="dlg" id="finalBody"></div>
 </dialog>
 
 <!-- Leaderboard -->
 <dialog id="lbDlg" aria-labelledby="lbTitle">
   <div class="dlg">
-    <h2 id="lbTitle">Leaderboard</h2>
-    <p class="muted" id="lbScope"></p>
+    <div class="dlg-head">
+      <div class="hero-art" aria-hidden="true"><i data-ic="trophy"></i></div>
+      <h2 id="lbTitle">High scores</h2>
+      <p class="muted" id="lbScope"></p>
+    </div>
     <div id="lbTable"></div>
-    <div class="row end"><button class="btn primary" type="button" data-close>Close</button></div>
+    <div class="row center"><button class="btn primary" type="button" data-close>Close</button></div>
   </div>
 </dialog>
 
 <!-- Label Lens -->
 <dialog id="lensDlg" aria-labelledby="lensTitle">
   <div class="dlg">
-    <h2 id="lensTitle">Label Lens</h2>
-    <p>Check a product from your own bathroom or closet. Upload a photo of the ingredient label or care tag, or paste the ingredient list. Gemini reads it and flags plastic ingredients. Without Gemini, the built-in scanner still checks pasted text.</p>
+    <div class="dlg-head">
+      <div class="hero-art" aria-hidden="true"><i data-ic="search"></i><i data-spr="scrub" class="lg"></i></div>
+      <h2 id="lensTitle">Label Lens</h2>
+      <p>Is there plastic in your stuff? Snap the ingredient label or clothing tag, or paste the list. We'll spot the plastic.</p>
+      <span class="paused-tag">Game paused</span>
+    </div>
     <div class="lens-drop" id="lensDrop">
       <img id="lensPreview" alt="" hidden>
-      <label class="btn" for="lensFile">📷 Choose a label photo</label>
+      <label class="btn" for="lensFile"><i data-ic="camera"></i> Choose a label photo</label>
       <input type="file" id="lensFile" accept="image/*" class="sr-only">
-      <div class="muted" style="margin-top:6px;font-size:.85rem">Photos need Gemini. They are sent only to Gemini for this check.</div>
+      <div class="muted" style="font-size:.85rem">Photos need Gemini and are only sent to Gemini.</div>
     </div>
     <div class="field">
-      <label for="lensText">Or paste ingredients / fabric content</label>
+      <label for="lensText">Or paste the ingredients</label>
       <textarea id="lensText" rows="3" placeholder="Aqua, Glycerin, Polyethylene, Sodium Laureth Sulfate, Acrylates Copolymer…"></textarea>
     </div>
     <div class="row end">
@@ -363,17 +524,43 @@ table.lb tr.me td { color: var(--sodium); font-weight: 700; }
   </div>
 </dialog>
 
+<!-- Coral chat: its own popup so game messages can't cover it, and the game pauses underneath -->
+<dialog id="coralDlg" class="coral-dlg" aria-labelledby="coralTitle">
+  <div class="dlg chat">
+    <div class="dlg-head">
+      <div class="hero-art g-art xl" aria-hidden="true"></div>
+      <h2 id="coralTitle">Ask <span class="g-name">Coral</span></h2>
+      <span class="paused-tag">Game paused while you chat</span>
+    </div>
+    <div class="chat-log" id="chatLog" aria-live="polite"></div>
+    <div class="suggest" id="coralSuggest"></div>
+    <form id="chatForm">
+      <label class="sr-only" for="chatInput">Ask your ocean guide a question</label>
+      <input id="chatInput" autocomplete="off" placeholder="Why can't filters catch microbeads?">
+      <button class="btn primary" type="submit">Ask</button>
+    </form>
+    <div class="row center"><button class="btn" type="button" data-close><i data-ic="play"></i> Back to the game</button></div>
+  </div>
+</dialog>
+
 <!-- Settings -->
 <dialog id="settingsDlg" aria-labelledby="settingsTitle">
   <div class="dlg">
     <h2 id="settingsTitle">Settings</h2>
     <div class="toggles">
       <label class="toggle"><input type="checkbox" id="setCalm"><span><b>Calm mode</b><small>No timer, wider grip, tap the tank to aim, <kbd>T</kbd> jumps to the next lit item.</small></span></label>
-      <label class="toggle"><input type="checkbox" id="setSpeak"><span><b>Read aloud</b><small>Speaks lessons and catch cards.</small></span></label>
+      <label class="toggle"><input type="checkbox" id="setSpeak"><span><b>Auto-read</b><small>Your guide reads lessons, cards and chat answers as soon as they appear. With it off, tap Read to me on any card.</small></span></label>
+      <label class="toggle"><input type="checkbox" id="setReact"><span><b>Guide reactions</b><small>Your guide cheers and gives tips while you play.</small></span></label>
+      <label class="toggle"><input type="checkbox" id="setCaptions"><span><b>Captions</b><small>Shows everything your guide says in a dialogue box.</small></span></label>
       <label class="toggle"><input type="checkbox" id="setSound"><span><b>Sound effects</b><small>Arcade beeps for moves, grabs and misses.</small></span></label>
       <label class="toggle"><input type="checkbox" id="setContrast"><span><b>High contrast</b><small>Pure black and white with brighter highlights.</small></span></label>
       <label class="toggle"><input type="checkbox" id="setLarge"><span><b>Larger text</b></span></label>
+      <label class="toggle"><input type="checkbox" id="setEasy"><span><b>Easy-read font</b><small>Swaps the pixel font for Atkinson Hyperlegible, a typeface made for low-vision readers.</small></span></label>
       <label class="toggle"><input type="checkbox" id="setMotion"><span><b>Reduce motion</b><small>Stops bubbles, sway and bobbing.</small></span></label>
+    </div>
+    <div class="field">
+      <label for="setGuide">Ocean guide</label>
+      <select id="setGuide"></select>
     </div>
     <div class="field">
       <label for="setPlace">Where you live (optional)</label>
@@ -397,6 +584,7 @@ table.lb tr.me td { color: var(--sodium); font-weight: 700; }
   </div>
 </dialog>
 
+<script src="art.js"></script>
 <script>
 "use strict";
 /* =====================================================================
@@ -404,83 +592,83 @@ table.lb tr.me td { color: var(--sodium); font-weight: 700; }
    ===================================================================== */
 const MODULES = [
   {
-    id: "bathroom", title: "The Bathroom Shelf", sub: "Microbeads & glitter", emoji: "🧴",
+    id: "bathroom", title: "The Bathroom Shelf", sub: "Microbeads & glitter", art: "s:scrub",
     tuned: ["Polyethylene", "Polypropylene", "Nylon-12", "PMMA", "Acrylates copolymer", "PET glitter"],
     lessons: [
-      { h: "Tiny beads, big problem", p: "Microbeads are plastic spheres, often smaller than 1 mm, added to scrubs, toothpastes and cosmetics for texture or shine. They wash down the drain, and many are too small for wastewater plants to catch every one.", stat: "Microplastic = any plastic piece under 5 mm" },
-      { h: "Read the label", p: "The US banned plastic microbeads in rinse-off products with the Microbead-Free Waters Act of 2015, and the EU restricted added microplastics in 2023. Leave-on makeup, older products and imports can still contain them. Look for: polyethylene, polypropylene, nylon-12, polymethyl methacrylate (PMMA) and acrylates copolymer.", stat: "Ingredient lists name the plastic directly" },
-      { h: "Glitter is plastic too", p: "Most glitter is PET plastic film coated with aluminum, cut into tiny pieces. It's a microplastic from the day it's made. Small animals like plankton and shellfish can mistake these particles for food.", stat: "Swap: plant-cellulose glitter, sugar or oat scrubs" }
+      { icon: "s:scrub", h: "Tiny beads, big problem", p: "Some face scrubs and toothpastes had tiny plastic beads in them. They wash down the drain, and many are too small for water plants to catch.", stat: "Microplastic = plastic smaller than 5 mm (about a grain of rice)" },
+      { icon: "i:search", h: "Read the label", p: "The US banned plastic beads in wash-off products in 2015. Makeup and older products can still have them. Watch for “poly-” words, nylon and acrylates.", stat: "The ingredient list names the plastic" },
+      { icon: "s:glitter", h: "Glitter is plastic", p: "Most glitter is tiny bits of shiny plastic. Small sea animals can mistake it for food.", stat: "Swap: plant-based glitter" }
     ],
-    quiz: { q: "You're reading a face scrub label. Which ingredient means it contains plastic microbeads?", options: ["Jojoba beads", "Polyethylene", "Sea salt", "Ground oatmeal"], answer: 1, why: "Polyethylene is the most common plastic used in microbeads. Jojoba, salt and oats are natural exfoliants that break down." },
+    quiz: { q: "Which word on a face scrub label means it has plastic beads?", options: ["Jojoba beads", "Polyethylene", "Sea salt", "Ground oatmeal"], answer: 1, why: "Polyethylene is a plastic. Jojoba, salt and oats are natural and break down." },
     items: [
-      { id: "scrub", name: "Exfoliating face scrub", emoji: "🧴", ingredients: [["Polyethylene beads", 1], ["Glycerin", 0], ["Fragrance", 0]], harm: "Each squeeze can hold thousands of polyethylene beads. Rinsed down the sink, the smallest ones slip through water treatment and float in rivers and the sea, where they collect other pollutants on their surface.", dispose: ["Don't wash leftover scrub down the sink.", "Cap the tube and put it in the trash so the beads stay in a landfill, not the water.", "Rinse-clean empty bottles can go in recycling if your town takes that plastic number."], swap: "Sugar, salt, oatmeal or a soft washcloth." },
-      { id: "glitter", name: "Body & craft glitter", emoji: "✨", ingredients: [["PET plastic film", 1], ["Aluminum coating", 0], ["Dye", 0]], harm: "Glitter is shredded PET plastic. It sheds everywhere, washes down drains and stays in the environment for a very long time.", dispose: ["Wipe glitter off skin with a dry pad or cloth and throw the pad in the trash, rather than washing it down the drain.", "Seal leftover glitter in its jar and put it in the trash.", "Never pour it outside or down storm drains."], swap: "Plant-cellulose 'bioglitter' or glitter-free decorations." },
-      { id: "toothpaste", name: "Old speckled toothpaste", emoji: "🪥", ingredients: [["Polyethylene specks", 1], ["Sodium fluoride", 0], ["Silica", 0]], harm: "Before bans, some toothpastes used polyethylene specks for color. Old tubes still turn up in cabinets. Every brush rinses plastic into the sewer.", dispose: ["Throw old tubes away capped instead of squeezing them out.", "Look for brand or store take-back programs for oral-care packaging.", "Choose toothpaste without plastic ingredients."], swap: "Toothpaste with silica or calcium carbonate for scrubbing." },
-      { id: "foundation", name: "Long-wear foundation", emoji: "💄", ingredients: [["Nylon-12", 1], ["Acrylates copolymer", 1], ["Polymethyl methacrylate", 1], ["Iron oxides", 0]], harm: "Many leave-on cosmetics use plastic powders and films to blur or stay put. They aren't covered by rinse-off bans and wash off into drains at the end of the day.", dispose: ["Use the product up instead of rinsing it out.", "Trash the sealed container; don't wash residue down the sink.", "Remove makeup with a reusable cloth and throw away wipes in the trash."], swap: "Brands labeled 'microplastic-free' or certified by Zero Plastic Inside." }
+      { id: "scrub", name: "Exfoliating face scrub", spr: "scrub", ingredients: [["Polyethylene beads", 1], ["Glycerin", 0], ["Fragrance", 0]], bad: "Each squeeze has thousands of plastic beads that slip into rivers and the sea.", bin: ["trash", "Put it in the trash with the cap on."], dont: "rinse leftovers down the sink", swap: "A sugar, salt or oatmeal scrub" },
+      { id: "glitter", name: "Body & craft glitter", spr: "glitter", ingredients: [["PET plastic film", 1], ["Aluminum coating", 0], ["Dye", 0]], bad: "Glitter is shredded plastic. It spreads everywhere and never goes away.", bin: ["trash", "Wipe it off with a dry cloth, then trash the cloth."], dont: "wash it down the drain", swap: "Plant-based glitter" },
+      { id: "toothpaste", name: "Old speckled toothpaste", spr: "toothpaste", ingredients: [["Polyethylene specks", 1], ["Sodium fluoride", 0], ["Silica", 0]], bad: "The colored specks are plastic. Every rinse sends some into the sewer.", bin: ["trash", "Throw old tubes away with the cap on."], dont: "squeeze it out into the sink", swap: "Toothpaste without plastic specks" },
+      { id: "foundation", name: "Long-wear foundation", spr: "lipstick", ingredients: [["Nylon-12", 1], ["Acrylates copolymer", 1], ["Polymethyl methacrylate", 1], ["Iron oxides", 0]], bad: "Plastic powders help makeup stay on. At night they wash down the drain.", bin: ["trash", "Use it up, then trash the closed container."], dont: "rinse leftovers down the sink", swap: "Makeup labeled “microplastic-free”" }
     ]
   },
   {
-    id: "laundry", title: "Laundry Day", sub: "Synthetic fibers", emoji: "🧺",
+    id: "laundry", title: "Laundry Day", sub: "Synthetic fibers", art: "s:sock",
     tuned: ["Polyester", "Nylon / polyamide", "Acrylic", "Elastane / spandex"],
     lessons: [
-      { h: "Your clothes are plastic", p: "Polyester, nylon, acrylic and spandex are plastics spun into thread. Polyester alone is more than half of all the fiber made in the world each year.", stat: "Polyester ≈ 57% of global fiber production (Textile Exchange, 2024)" },
-      { h: "Every wash sheds fibers", p: "Washing rubs tiny fibers off synthetic clothes. One study found a single 6 kg wash of acrylic fabric could release more than 700,000 fibers. Many pass through treatment plants into rivers and oceans, and microfibers are one of the most common types of microplastic found on shorelines.", stat: "Up to ~700,000 fibers per load (Napper & Thompson, 2016)" },
-      { h: "Wash smarter", p: "Run full loads on a cold, shorter cycle. Use a microfiber-catching wash bag or a washing-machine filter. Air-dry when you can, and buy fewer, longer-lasting clothes. When a synthetic piece wears out, donate or textile-recycle it instead of throwing it away.", stat: "Cold + full + short = less shedding" }
+      { icon: "i:shirt", h: "Clothes can be plastic", p: "Polyester, nylon, acrylic and spandex are all plastic made into thread. More than half the world's fabric is polyester.", stat: "Polyester ≈ 57% of all fiber made (Textile Exchange, 2024)" },
+      { icon: "i:reload", h: "Every wash sheds", p: "Washing rubs off tiny threads called microfibers. One load can let off hundreds of thousands, and many reach the ocean.", stat: "Up to ~700,000 fibers in one load (Napper & Thompson, 2016)" },
+      { icon: "i:snowflake", h: "Wash smarter", p: "Wash full loads in cold water on a short cycle. Air-dry when you can. Donate clothes you don't wear.", stat: "Cold + full + short = less shedding" }
     ],
-    quiz: { q: "Which laundry habit releases the fewest microfibers?", options: ["Hot water, long cycle", "Small half-loads", "Full load, cold water, short cycle", "Extra spin cycles"], answer: 2, why: "Full loads mean less water and rubbing per garment, and cold, short cycles are gentler, so fewer fibers break off." },
+    quiz: { q: "Which way of washing lets off the fewest tiny threads?", options: ["Hot water, long cycle", "Small half-loads", "Full load, cold water, short cycle", "Extra spin cycles"], answer: 2, why: "Cold, short washes are gentler, and full loads mean less rubbing for each piece of clothing." },
     items: [
-      { id: "fleece", name: "Fleece jacket", emoji: "🧥", ingredients: [["Polyester", 1], ["Polyester lining", 1]], harm: "Fleece is brushed polyester, which makes it fluffy and very good at shedding. A fleece can lose fibers in every wash for its whole life.", dispose: ["Still wearable? Donate it or swap it.", "Worn out? Bring it to a textile-recycling drop-off or a brand take-back program.", "Until then, wash it rarely, cold, inside a microfiber-catching bag."], swap: "Wool or cotton layers, or recycled fleece washed in a filter bag." },
-      { id: "scarf", name: "Acrylic knit scarf", emoji: "🧣", ingredients: [["Acrylic", 1], ["Elastane", 1]], harm: "Acrylic fabrics shed the most fibers in lab wash tests. Those fibers are light enough to travel far from the drain into rivers and the ocean.", dispose: ["Hand-wash or spot-clean, cold.", "Donate it or use a textile-recycling bin at the end of its life.", "Don't put clothes in the trash if recycling is available nearby."], swap: "Wool, cotton or secondhand knits." },
-      { id: "sportshirt", name: "Athletic shirt", emoji: "🎽", ingredients: [["Polyester", 1], ["Spandex", 1]], harm: "Workout gear is made of stretchy, quick-dry plastics and gets washed often, so it releases microfibers again and again.", dispose: ["Wash with a microfiber filter bag and air-dry.", "Pass on gear you've outgrown; many teams and shelters accept it.", "Use textile recycling for torn pieces."], swap: "Merino or cotton-blend gear; buy only what you'll use." },
-      { id: "socks", name: "Nylon socks", emoji: "🧦", ingredients: [["Nylon", 1], ["Polyester", 1], ["Cotton", 0]], harm: "Socks get scrubbed with every step and every wash, so the nylon in them wears into fibers and fuzz that end up in wastewater.", dispose: ["Darn or patch small holes.", "Retired socks make great dusting rags, then go to textile recycling.", "Never flush or rinse lint down drains; put dryer lint in the trash."], swap: "Socks with higher natural-fiber content." }
+      { id: "fleece", name: "Fleece jacket", spr: "fleece", ingredients: [["Polyester", 1], ["Polyester lining", 1]], bad: "Fleece is fluffy plastic. It drops tiny threads every time it's washed.", bin: ["reuse", "Donate it, or take it to a clothing drop-off."], dont: "wash it hot and long", swap: "Wool or cotton layers" },
+      { id: "scarf", name: "Acrylic knit scarf", spr: "scarf", ingredients: [["Acrylic", 1], ["Elastane", 1]], bad: "Acrylic sheds the most threads in wash tests, and they travel far.", bin: ["reuse", "Donate it or use a clothing-recycling bin."], dont: "toss it if recycling is nearby", swap: "Wool, cotton or secondhand" },
+      { id: "sportshirt", name: "Athletic shirt", spr: "tanktop", ingredients: [["Polyester", 1], ["Spandex", 1]], bad: "Stretchy gym clothes are plastic and get washed a lot, so they shed again and again.", bin: ["reuse", "Pass it on to a team, friend or shelter."], dont: "run it through a hot dryer every time", swap: "Cotton or merino gear" },
+      { id: "socks", name: "Nylon socks", spr: "sock", ingredients: [["Nylon", 1], ["Polyester", 1], ["Cotton", 0]], bad: "Every step and every wash wears nylon socks into fuzz that ends up in the water.", bin: ["reuse", "Turn them into dust rags, then textile-recycle."], dont: "rinse dryer lint down the drain", swap: "Socks with more cotton or wool" }
     ]
   },
   {
-    id: "takeout", title: "Takeout & On-the-Go", sub: "Single-use plastics", emoji: "🥡",
+    id: "takeout", title: "Takeout & On-the-Go", sub: "Single-use plastics", art: "s:cup",
     tuned: ["PET (#1)", "HDPE (#2)", "LDPE (#4)", "Polypropylene (#5)", "Polystyrene (#6)"],
     lessons: [
-      { h: "Big plastic becomes tiny plastic", p: "Sunlight, waves and heat make plastic brittle. Bags, cups and bottles crack into smaller and smaller fragments. They break into pieces but don't go away, which is why most microplastics in the sea started as larger items.", stat: "Plastic breaks apart but doesn't biodegrade" },
-      { h: "Learn the numbers", p: "The number inside the chasing-arrows triangle tells you the type of plastic: #1 PET bottles, #2 HDPE jugs, #4 LDPE bags and film, #5 polypropylene cups and caps, #6 polystyrene foam. It doesn't promise that your town recycles it.", stat: "Resin codes identify plastics, not recyclability" },
-      { h: "Foam crumbles fastest", p: "Expanded polystyrene foam breaks into tiny beads at a touch and is rarely accepted in curbside recycling. Bringing your own cup, bottle or container skips the waste entirely, and that does more good than recycling.", stat: "Reduce → reuse → recycle, in that order" }
+      { icon: "i:sun", h: "Big plastic gets tiny", p: "Sun and waves make plastic brittle. Bags, cups and bottles crack into smaller and smaller pieces, but they never really go away.", stat: "Most ocean microplastic started as bigger stuff" },
+      { icon: "i:recycle", h: "Know the numbers", p: "The number in the recycling triangle tells you what kind of plastic it is. It does NOT mean your town recycles it.", stat: "#1 bottles · #2 jugs · #4 bags · #5 cups · #6 foam" },
+      { icon: "s:foam", h: "Foam crumbles fast", p: "Foam breaks into tiny beads, and most towns can't recycle it. Bringing your own cup or box beats recycling.", stat: "Reduce → Reuse → Recycle" }
     ],
-    quiz: { q: "What does the number inside the recycling triangle tell you?", options: ["That it's always recyclable", "How many times it was recycled", "The type of plastic it's made of", "How long it takes to break down"], answer: 2, why: "It's a resin identification code. Whether that plastic is accepted depends on your local program." },
+    quiz: { q: "What does the number in the recycling triangle tell you?", options: ["It can always be recycled", "How many times it was recycled", "What type of plastic it is", "How long it takes to break down"], answer: 2, why: "It tells you the type of plastic. Your town decides which types it takes." },
     items: [
-      { id: "cup", name: "Soda cup & straw", emoji: "🥤", ingredients: [["Polypropylene (#5) straw", 1], ["Polyethylene cup lining", 1], ["Paperboard", 0]], harm: "Straws and lids are some of the most common items found in beach cleanups. Paper cups are lined with a thin plastic film, so they shed plastic as they break down.", dispose: ["Lids and straws are usually trash; check your local list for #5.", "Lined paper cups are not curbside recyclable in most places.", "Never leave them on the beach or in the street, where wind carries them to storm drains."], swap: "A reusable tumbler; skip the straw or use a metal one." },
-      { id: "bag", name: "Plastic shopping bag", emoji: "🛍️", ingredients: [["LDPE / HDPE film", 1]], harm: "Thin bags blow away easily, tangle animals and shred into film fragments. Sea turtles can mistake floating bags for jellyfish.", dispose: ["Don't put bags in curbside bins; they jam sorting machines.", "Bring clean, dry bags to a store film-recycling drop-off.", "Reuse them as bin liners first."], swap: "A cloth or sturdy reusable bag kept by the door." },
-      { id: "foam", name: "Foam takeout box", emoji: "🥡", ingredients: [["Expanded polystyrene (#6)", 1]], harm: "Foam snaps into countless lightweight beads that float, drift and get eaten by fish and birds. Many cities have banned it.", dispose: ["Most curbside programs don't accept foam; put it in the trash.", "Some areas have special foam drop-off sites; check yours.", "Break it inside a bag, never outdoors."], swap: "Bring your own container or ask for paper or aluminum." },
-      { id: "cutlery", name: "Plastic cutlery pack", emoji: "🍴", ingredients: [["Polystyrene", 1], ["Polypropylene wrapper", 1]], harm: "Utensils are used for minutes but last for centuries. They're too small and light for most recycling sorters, so they end up in landfills or as litter.", dispose: ["Plastic utensils go in the trash, not recycling.", "Say 'no utensils' when you order delivery.", "Keep spare packs at home and reuse them."], swap: "A spork or real cutlery in your bag." }
+      { id: "cup", name: "Soda cup & straw", spr: "cup", ingredients: [["Polypropylene (#5) straw", 1], ["Polyethylene cup lining", 1], ["Paperboard", 0]], bad: "Straws and lids are some of the top things found on beaches.", bin: ["trash", "The lid and straw usually go in the trash."], dont: "leave it outside, where wind blows it to drains", swap: "A reusable cup, no straw" },
+      { id: "bag", name: "Plastic shopping bag", spr: "bag", ingredients: [["LDPE / HDPE film", 1]], bad: "Thin bags blow away, and sea turtles can mistake them for jellyfish.", bin: ["dropoff", "Bring clean bags to a store drop-off bin."], dont: "put it in curbside recycling (it jams machines)", swap: "A cloth bag by the door" },
+      { id: "foam", name: "Foam takeout box", spr: "foam", ingredients: [["Expanded polystyrene (#6)", 1]], bad: "Foam snaps into tiny beads that fish and birds eat.", bin: ["trash", "Trash it, unless your town has a foam drop-off."], dont: "break it apart outside", swap: "Bring your own container" },
+      { id: "cutlery", name: "Plastic cutlery pack", spr: "cutlery", ingredients: [["Polystyrene", 1], ["Polypropylene wrapper", 1]], bad: "You use it for minutes, but it lasts for hundreds of years.", bin: ["trash", "Trash. It's too small for recycling machines."], dont: "take it when you don't need it", swap: "Say “no utensils, please”" }
     ]
   },
   {
-    id: "hidden", title: "Hidden Plastics", sub: "Things you didn't know were plastic", emoji: "🕵️",
+    id: "hidden", title: "Hidden Plastics", sub: "Things you didn't know were plastic", art: "i:eye",
     tuned: ["Cellulose acetate", "Polypropylene nonwoven", "Polyester fibers", "Nylon / PET mesh"],
     lessons: [
-      { h: "The most-littered item", p: "Cigarette butts are often the most-collected item in global beach cleanups. Their filters are made of cellulose acetate, a plastic. A tossed butt also leaches nicotine and metals into the water.", stat: "Ocean Conservancy cleanups count millions of butts" },
-      { h: "Wipes and masks", p: "Many wet wipes, including some labeled 'flushable', are made of polyester or polypropylene fibers. Flushed wipes clog sewers and shed microfibers. Disposable face masks are layers of melt-blown polypropylene.", stat: "Only pee, poo and toilet paper should be flushed" },
-      { h: "Surprise ingredients", p: "Some tea bags are woven plastic mesh (nylon or PET) or sealed with polypropylene. Chewing gum base can include synthetic polymers like polyvinyl acetate. Even 'paper' items can hide a plastic layer.", stat: "Loose-leaf tea and plastic-free gum exist" }
+      { icon: "s:butt", h: "The top beach trash", p: "Cigarette filters are made of plastic. They're one of the most common things picked up at beach cleanups.", stat: "Millions collected every year (Ocean Conservancy)" },
+      { icon: "s:wipes", h: "Wipes and masks", p: "Many wet wipes and face masks are made of plastic threads. Wipes clog pipes, even ones that say “flushable.”", stat: "Only toilet paper goes in the toilet" },
+      { icon: "i:tea", h: "Surprise plastic", p: "Some tea bags are woven plastic, and some chewing gum has plastic in it. Plastic hides where you'd never guess.", stat: "Loose-leaf tea and plastic-free gum exist" }
     ],
-    quiz: { q: "You've used a wet wipe. Where should it go?", options: ["Toilet, if the pack says flushable", "Trash bin", "Compost", "Recycling bin"], answer: 1, why: "Most wipes contain plastic fibers and don't break down like toilet paper. The trash bin keeps them out of sewers and the sea." },
+    quiz: { q: "You used a wet wipe. Where does it go?", options: ["Toilet, if the pack says flushable", "Trash can", "Compost", "Recycling bin"], answer: 1, why: "Most wipes have plastic and don't break down. The trash keeps them out of pipes and the sea." },
     items: [
-      { id: "butt", name: "Cigarette butt", emoji: "🚬", ingredients: [["Cellulose acetate filter", 1], ["Nicotine residue", 0], ["Heavy metals", 0]], harm: "The filter is a plastic made of thousands of fibers. Washed into gutters by rain, it releases fibers and toxic chemicals that can harm fish and other small sea animals.", dispose: ["Put out completely, then use an ashtray or a butt-collection bin.", "Never flick butts onto streets or sand.", "Some programs collect butts for special recycling."], swap: "Support local butt-bin programs and smoke-free beaches." },
-      { id: "wipes", name: "'Flushable' wet wipes", emoji: "🧻", ingredients: [["Polyester fibers", 1], ["Polypropylene nonwoven", 1], ["Preservatives", 0]], harm: "Wipes clump with grease into sewer blockages. When sewers overflow, wipes and their plastic fibers spill into rivers and coasts.", dispose: ["Always put wipes in the trash, even ones labeled 'flushable'.", "Keep a small lidded bin in the bathroom.", "Report sewer overflows to your city."], swap: "Washable cloths or 100% plant-fiber, plastic-free wipes (still trash them)." },
-      { id: "mask", name: "Disposable face mask", emoji: "😷", ingredients: [["Polypropylene layers", 1], ["Polyester ear loops", 1], ["Metal nose wire", 0]], harm: "Masks became a common beach litter item. Their layered plastic fabric breaks into microfibers, and ear loops can tangle birds.", dispose: ["Put used masks in the trash.", "Snip the ear loops first so animals can't get caught.", "Never leave them on the ground."], swap: "Reusable cloth masks where appropriate; follow health guidance." },
-      { id: "teabag", name: "Mesh tea bag", emoji: "🍵", ingredients: [["Nylon / PET mesh", 1], ["Polypropylene seal", 1], ["Tea leaves", 0]], harm: "Pyramid-style 'silky' tea bags are woven plastic. Even paper bags may be sealed with polypropylene, so they don't fully break down in compost.", dispose: ["Put plastic-mesh bags in the trash, not the compost.", "Check the brand: some say 'plastic-free' on the box.", "Compost the tea leaves by cutting the bag open."], swap: "Loose-leaf tea with a metal infuser." }
+      { id: "butt", name: "Cigarette butt", spr: "butt", ingredients: [["Cellulose acetate filter", 1], ["Nicotine residue", 0], ["Heavy metals", 0]], bad: "The filter is plastic, and it leaks toxic chemicals into the water.", bin: ["trash", "Use an ashtray or a butt-collection bin."], dont: "drop it on the street or sand", swap: "Support smoke-free beaches" },
+      { id: "wipes", name: "'Flushable' wet wipes", spr: "wipes", ingredients: [["Polyester fibers", 1], ["Polypropylene nonwoven", 1], ["Preservatives", 0]], bad: "Wipes clump into sewer clogs that can spill into rivers and coasts.", bin: ["trash", "Always the trash, even “flushable” ones."], dont: "flush it", swap: "A washable cloth" },
+      { id: "mask", name: "Disposable face mask", spr: "mask", ingredients: [["Polypropylene layers", 1], ["Polyester ear loops", 1], ["Metal nose wire", 0]], bad: "Masks break into tiny threads, and the ear loops can trap birds.", bin: ["trash", "Snip the ear loops, then trash it."], dont: "leave it on the ground", swap: "A reusable cloth mask, when that's safe to use" },
+      { id: "teabag", name: "Mesh tea bag", spr: "teabag", ingredients: [["Nylon / PET mesh", 1], ["Polypropylene seal", 1], ["Tea leaves", 0]], bad: "Silky pyramid tea bags are woven plastic and don't break down.", bin: ["trash", "Trash the bag. Compost the leaves."], dont: "put the bag in compost", swap: "Loose-leaf tea" }
     ]
   },
   {
-    id: "harbor", title: "Roads & Harbors", sub: "Tires, paint and fishing gear", emoji: "⚓",
+    id: "harbor", title: "Roads & Harbors", sub: "Tires, paint and fishing gear", art: "i:anchor",
     tuned: ["Styrene-butadiene rubber", "Acrylic / alkyd paint", "Nylon monofilament", "Metallized nylon film"],
     lessons: [
-      { h: "Roads shed plastic", p: "As tires roll, they wear down into tiny particles of synthetic rubber and additives. Rain washes them from roads into storm drains that flow straight to rivers and the sea. Tire wear is thought to be one of the largest sources of microplastics in the environment. A tire chemical, 6PPD-quinone, has been linked to coho salmon die-offs.", stat: "6PPD-quinone found toxic to coho salmon (Tian et al., 2021)" },
-      { h: "Paint is a plastic coating", p: "House, road and boat paints use plastic polymers (acrylic, alkyd, epoxy) as binders. Peeling flakes and paint rinse-water become microplastics. Pouring paint into a storm drain sends it straight to the water.", stat: "Storm drains usually aren't treated" },
-      { h: "Ghost gear", p: "Lost or abandoned fishing gear (nets, lines and traps made of nylon, polyethylene and polypropylene) keeps catching animals for years and slowly breaks apart. By weight, fishing nets make up a large share of the Great Pacific Garbage Patch.", stat: "Nets ≈ 46% of the Garbage Patch by mass (Lebreton et al., 2018)" }
+      { icon: "i:car", h: "Roads shed plastic", p: "Tires wear down into tiny rubber bits as cars drive. Rain washes them into storm drains that flow to the sea. One tire chemical is linked to salmon deaths.", stat: "6PPD-quinone harms coho salmon (Tian et al., 2021)" },
+      { icon: "i:paint", h: "Paint is plastic too", p: "Most paint uses plastic to hold its color together. Peeling flakes and paint poured outside end up in the water.", stat: "Storm drains go straight to the water" },
+      { icon: "s:hook", h: "Ghost gear", p: "Lost fishing nets and lines keep trapping animals for years. By weight, nets are almost half of the Great Pacific Garbage Patch.", stat: "Nets ≈ 46% of the Garbage Patch (Lebreton et al., 2018)" }
     ],
-    quiz: { q: "Where do tire-wear particles mostly come from?", options: ["Tires rubbing on roads as cars drive", "Tire factories only", "Burning old tires", "Rubber trees"], answer: 0, why: "Normal driving wears tires down. Smoother driving, correct tire pressure and fewer car trips all reduce it." },
+    quiz: { q: "Where do tiny tire bits mostly come from?", options: ["Tires rubbing on the road", "Tire factories", "Burning old tires", "Rubber trees"], answer: 0, why: "Driving wears tires down. Walking, biking and fewer car trips all help." },
     items: [
-      { id: "tire", name: "Worn car tire", emoji: "🛞", ingredients: [["Styrene-butadiene rubber", 1], ["6PPD additive", 0], ["Steel belts", 0]], harm: "This tire has already lost roughly a few pounds of rubber to the road over its life. Dumped tires in waterways also leach chemicals.", dispose: ["Leave old tires with the shop when you get new ones; most charge a small recycling fee.", "Use your county's tire collection day.", "Never dump tires; it's illegal in most places."], swap: "Keep tires inflated, drive smoothly, walk, bike or take transit." },
-      { id: "paint", name: "Leftover paint can", emoji: "🪣", ingredients: [["Acrylic polymer binder", 1], ["Pigments", 0], ["Solvents", 0]], harm: "Liquid paint poured outside or rinsed into a gutter carries plastic binder straight into the water. Old flakes also break into microplastic.", dispose: ["Take leftover paint to a household hazardous waste site or paint-recycling drop-off.", "Rinse brushes in a sink connected to the sewer, never in a storm drain.", "Some areas allow fully dried latex paint in the trash; check local rules."], swap: "Buy only what you need and donate extra paint to community projects." },
-      { id: "line", name: "Tangled fishing line", emoji: "🎣", ingredients: [["Nylon monofilament", 1], ["Lead or steel hooks", 0]], harm: "Monofilament line is nearly invisible underwater and can last hundreds of years. It wraps around birds, turtles and seals, and breaks into microplastic.", dispose: ["Use monofilament recycling tubes at piers and tackle shops.", "If there's no bin, cut line into short pieces and put it in a lidded trash can.", "Pick up any line you see on the shore."], swap: "Report lost gear; support gear-retrieval programs." },
-      { id: "balloon", name: "Foil party balloon", emoji: "🎈", ingredients: [["Metallized nylon / PET film", 1], ["Ribbon (polypropylene)", 1]], harm: "Released balloons travel far and land in the ocean, where seabirds and turtles swallow them. Foil balloons never biodegrade.", dispose: ["Never release balloons outdoors.", "Pop, cut and put them in the trash.", "Remove ribbons so they can't tangle wildlife."], swap: "Paper decorations, bubbles or reusable banners." }
+      { id: "tire", name: "Worn car tire", spr: "tire", ingredients: [["Styrene-butadiene rubber", 1], ["6PPD additive", 0], ["Steel belts", 0]], bad: "Tires wear into tiny rubber bits that rain washes toward the sea.", bin: ["dropoff", "Leave old tires at the tire shop."], dont: "dump them anywhere", swap: "Walk, bike or take the bus" },
+      { id: "paint", name: "Leftover paint can", spr: "paint", ingredients: [["Acrylic polymer binder", 1], ["Pigments", 0], ["Solvents", 0]], bad: "Paint has plastic in it. Poured outside, it flows straight to the water.", bin: ["dropoff", "Take it to a paint or hazardous-waste drop-off."], dont: "pour it in a storm drain or on the ground", swap: "Buy only what you need" },
+      { id: "line", name: "Tangled fishing line", spr: "hook", ingredients: [["Nylon monofilament", 1], ["Lead or steel hooks", 0]], bad: "Fishing line is almost invisible underwater and tangles birds, turtles and seals.", bin: ["dropoff", "Use a fishing-line recycling tube at a pier or shop."], dont: "leave it on the shore", swap: "Pick up any line you see" },
+      { id: "balloon", name: "Foil party balloon", spr: "balloon", ingredients: [["Metallized nylon / PET film", 1], ["Ribbon (polypropylene)", 1]], bad: "Balloons that float away land in the ocean, where animals swallow them.", bin: ["trash", "Pop it, cut it, then trash it."], dont: "let it go outside", swap: "Paper decorations or bubbles" }
     ]
   }
 ];
@@ -491,7 +679,7 @@ const TOTAL_ITEMS = ALL_ITEMS.length;
 /* Offline label scanner dictionary */
 const LENS_DICT = [
   [/polyethylene terephthalate|\bPET\b(?! ?food)/i, "PET (polyethylene terephthalate)", "Plastic used in bottles, glitter and polyester."],
-  [/polyethylene|\bPE beads?\b/i, "Polyethylene", "The most common microbead plastic."],
+  [/polyethylene(?! ?terephthalate)|\bPE beads?\b/i, "Polyethylene", "The most common microbead plastic."],
   [/polypropylene/i, "Polypropylene", "Plastic used in beads, nonwoven wipes and masks."],
   [/nylon[- ]?\d*|polyamide/i, "Nylon / polyamide", "Plastic powder in cosmetics and fiber in clothes."],
   [/polymethyl ?methacrylate|\bPMMA\b/i, "PMMA (acrylic)", "Plastic microspheres used for a soft-focus effect."],
@@ -541,19 +729,242 @@ function mixHex(a, b, t) {
 function mulberry(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
 /* ---------- settings ---------- */
-const settings = Object.assign({ calm: false, speak: false, sound: true, contrast: false, large: false, motion: matchMedia("(prefers-reduced-motion: reduce)").matches, place: "", model: "" }, store.get("settings", {}));
+const settings = Object.assign({ guide: "coral", easy: false, reactions: true, captions: true, calm: false, speak: false, sound: true, contrast: false, large: false, motion: matchMedia("(prefers-reduced-motion: reduce)").matches, place: "", model: "" }, store.get("settings", {}));
 function applySettings() {
   document.documentElement.dataset.contrast = settings.contrast ? "high" : "";
   document.documentElement.dataset.font = settings.large ? "large" : "";
+  document.documentElement.dataset.easy = settings.easy ? "on" : "";
   $("#hudTimerLabel").textContent = settings.calm ? "Mode" : "Timer";
   store.set("settings", settings);
 }
 
-/* ---------- speech ---------- */
-function speak(text) {
-  if (!settings.speak || !("speechSynthesis" in window)) return;
-  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 1; speechSynthesis.speak(u); } catch {}
+/* ---------- ocean guides: a personality for chat + a voice for read-aloud ---------- */
+// Voices live on the server (ElevenLabs). pitch/rate shape the browser-voice fallback so each guide still sounds different offline.
+const GUIDES = [
+  { id: "coral", name: "Coral", spr: "coral", pronouns: "she/her", tag: "A cheerful reef who loves fun facts", persona: "a bubbly, upbeat coral reef who loves fun facts and cheers players on", hello: "Hi, I'm Coral! Let's clean up the sea together!", cheer: "Woohoo!", pitch: 1.2, rate: 1.05 },
+  { id: "pinch", name: "Captain Pinch", spr: "crab", pronouns: "he/him", tag: "A salty old crab who talks like a pirate", persona: "a gruff but kind pirate crab who uses a few pirate words like 'ahoy' and 'matey' while staying easy to understand", hello: "Ahoy, matey! Captain Pinch at yer service. Let's snip that plastic out of me ocean!", cheer: "Pinch-tastic!", pitch: 0.7, rate: 1.05 },
+  { id: "jelly", name: "Jelly", spr: "jelly", pronouns: "they/them", tag: "A dreamy jellyfish who keeps things calm", persona: "a calm, dreamy jellyfish who speaks gently and slowly and helps stressed players relax", hello: "Hiii. I'm Jelly. Just float along with me. We'll take it nice and slow.", cheer: "Ooh, lovely.", pitch: 1.05, rate: 0.85 },
+  { id: "tuck", name: "Old Tuck", spr: "turtle", pronouns: "he/him", tag: "A 100-year-old sea turtle with stories", persona: "a wise, warm 100-year-old sea turtle who sometimes remembers how the ocean used to look", hello: "Well hello there, young diver. I've been swimming these seas for a hundred years. Let's get to work.", cheer: "Well done, young one!", pitch: 0.8, rate: 0.85 },
+  { id: "splash", name: "Splash", spr: "dolphin", pronouns: "she/her", tag: "A speedy dolphin who's always hyped", persona: "an energetic, excited dolphin who talks in short, punchy, hyped-up sentences", hello: "Eee eee! I'm Splash! Ready to go fast? Let's GO!", cheer: "Splash-tacular!", pitch: 1.3, rate: 1.15 }
+];
+// What each guide says during play (short, so they're cheap to voice and get cached after the first time).
+const GUIDE_LINES = {
+  coral: {"start": ["Let's go! Grab the glowing ones!", "Ooh, I see plastic! Go get it!"], "miss": ["Oops, empty claw! You've got this.", "So close! Line it up and try again."], "slip": ["Aw, it slipped! Aim for the middle."], "wrong": ["That one isn't glowing, so the claw can't hold it!"], "hurry": ["Five seconds! Drop it!"], "streak2": ["Two in a row! You're on fire!"], "streak3": ["Three in a row! You're unstoppable!"], "clear": ["You cleared the whole dive! The reef says thank you!"], "out": ["Out of tries. We'll get them next dive!"], "outLast": ["Out of tries. Let's see how much we cleaned!"], "shelf": ["Your product is in the tank! Grab it for bonus points!"]},
+  pinch: {"start": ["Ahoy! Snag the glowin' ones, matey!", "All hands on deck! Plastic ahoy!"], "miss": ["Arr, an empty claw! Try again, matey!", "Blast! Missed by a barnacle!"], "slip": ["Slippery as an eel! Aim for the middle!"], "wrong": ["That one ain't glowin', matey! Leave it be!"], "hurry": ["Hurry! The clock be tickin'!"], "streak2": ["Two in a row! Ye've got the touch, matey!"], "streak3": ["Three in a row! A true sea captain!"], "clear": ["Ye cleared the whole dive! Fine sailin'!"], "out": ["Out of tries, matey. We'll get 'em next dive!"], "outLast": ["Out of tries, matey. Let's count our treasure!"], "shelf": ["Yer own treasure's in the tank! Snag it for bonus loot!"]},
+  jelly: {"start": ["Okay. Gently now. Grab the glowing ones."], "miss": ["That's okay. Breathe, and try again.", "No rush. You'll get the next one."], "slip": ["It drifted away. Aim for the middle."], "wrong": ["That one isn't glowing. Let it float."], "hurry": ["A few seconds left. You can do it."], "streak2": ["Two in a row. So smooth."], "streak3": ["Three in a row. You're really flowing now."], "clear": ["You cleared the dive. The water feels so calm now."], "out": ["Out of tries. Let's float on to the next dive."], "outLast": ["Out of tries. Let's float over and see what we cleaned."], "shelf": ["Your product is floating in the tank. Catch it for bonus points."]},
+  tuck: {"start": ["Alright, young one. Grab the glowing ones."], "miss": ["Missed? I've missed plenty in a hundred years. Try again.", "Patience, young one. Line it up."], "slip": ["It slipped! Center the claw, like I taught you."], "wrong": ["That one's not glowing, young one. Leave it."], "hurry": ["Better hurry, young one!"], "streak2": ["Two in a row! Haven't seen that in fifty years!"], "streak3": ["Three in a row! You're a natural."], "clear": ["You cleared the dive! The sea looks like it did when I was young."], "out": ["Out of tries. Rest up for the next dive."], "outLast": ["Out of tries. Let's look back at all you did."], "shelf": ["Your own product is in the tank! Catch it for bonus points."]},
+  splash: {"start": ["Let's GO! Grab the glowing ones! Fast fast fast!"], "miss": ["Whoops! Again! Again!", "Nooo, so close! Go again!"], "slip": ["It slipped! Aim for the middle! Go go!"], "wrong": ["Not that one! Only the glowing ones!"], "hurry": ["Hurry hurry hurry!"], "streak2": ["Two in a row! Eee eee!"], "streak3": ["THREE in a row! Zoom zoom!"], "clear": ["You cleared it ALL! Best dive EVER!"], "out": ["Out of tries! Next dive, let's GO!"], "outLast": ["Out of tries! Let's see your score!"], "shelf": ["Your product's in the tank! Grab it for BONUS points!"]}
+};
+const guide = () => GUIDES.find(g => g.id === settings.guide) || GUIDES[0];
+
+/* ---------- captions: what the guide says, typed out in a dialogue box ---------- */
+const Captions = {
+  el: null, typing: 0, hideTimer: 0,
+  init() {
+    this.el = $("#caption");
+    if (!this.el.showPopover) this.el.classList.add("no-popover");   // older browsers: plain fixed box
+    addEventListener("resize", () => this.isOpen() && this.place());
+    addEventListener("scroll", () => this.isOpen() && this.place(), { passive: true });
+  },
+  isOpen() { return this.el.classList.contains("show") || (this.el.matches && this.el.matches(":popover-open")); },
+  // Popups go on top of the screen, so re-raise the box whenever one opens (and move it out of the popup's way).
+  raise() {
+    if (!this.el || !this.isOpen()) return;
+    if (this.el.showPopover) { this.el.hidePopover(); this.el.showPopover(); }
+    this.place();
+  },
+  place() {
+    const st = this.el.style;
+    if (document.querySelector("dialog[open]")) {   // over a popup: top of the screen, clear of its buttons
+      this.el.classList.toggle("compact", innerWidth < 600);
+      Object.assign(st, { top: "12px", left: "50%", transform: "translateX(-50%)", width: "" });
+    } else {
+      const r = $(".tank").getBoundingClientRect(), small = r.height < 300;
+      this.el.classList.toggle("compact", small);
+      if (small) {   // phones: the tank is short, so sit just above it, over the HUD
+        Object.assign(st, { top: Math.max(8, r.top - this.el.offsetHeight - 6) + "px", left: r.left + r.width / 2 + "px", transform: "translateX(-50%)", width: Math.round(r.width) + "px" });
+      } else {   // during play: mid-water in the tank, under the claw's resting spot and above the sand
+        Object.assign(st, { top: Math.max(8, r.top + r.height * 0.46) + "px", left: r.left + r.width / 2 + "px", transform: "translateX(-50%)", width: `min(${Math.round(r.width - 32)}px, 600px)` });
+      }
+    }
+  },
+  line(text, g, seconds) {
+    if (!settings.captions) return;
+    clearTimeout(this.hideTimer); clearInterval(this.typing);
+    $("#capFace").innerHTML = sprite(g.spr);
+    $("#capName").textContent = g.name;
+    const out = $("#capText");
+    if (this.el.showPopover) { if (this.isOpen()) this.el.hidePopover(); this.el.showPopover(); } else this.el.classList.add("show");
+    this.place();
+    if (settings.motion) { out.textContent = text; return; }
+    // Type at roughly the speed of the voice, so the words land as they're spoken.
+    const cps = Math.max(18, Math.min(60, seconds ? text.length / (seconds * 0.85) : 34));
+    let i = 0; out.textContent = "";
+    this.typing = setInterval(() => { i = Math.min(text.length, i + Math.max(1, Math.round(cps / 30))); out.textContent = text.slice(0, i); if (i >= text.length) clearInterval(this.typing); }, 33);
+  },
+  done() { clearTimeout(this.hideTimer); this.hideTimer = setTimeout(() => this.hide(), 1600); },
+  hide() {
+    if (!this.el) return;
+    clearTimeout(this.hideTimer); clearInterval(this.typing);
+    if (this.el.hidePopover) { if (this.isOpen()) this.el.hidePopover(); } else this.el.classList.remove("show");
+  }
+};
+
+const SILENT_WAV = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+const Voice = {
+  on: false, blocked: false, el: new Audio(), seq: 0, urls: new Map(), btn: null, unlocked: false, active: false, reacting: false,
+  // Safari only lets an <audio> element play later if it was first started during a tap, so we start it (silently) on the first one.
+  unlock() { if (this.unlocked) return; this.unlocked = true; this.el.src = SILENT_WAV; this.el.play().catch(() => {}); },
+  setBtn(state) {
+    const b = this.btn; if (!b || !b.isConnected) return;
+    b.dataset.label ??= b.innerHTML;
+    b.innerHTML = state === "loading" ? `${icon("hourglass")} Loading…` : state === "playing" ? `${icon("stop-solid")} Stop` : b.dataset.label;
+    b.setAttribute("aria-pressed", state ? "true" : "false");
+  },
+  stop() {
+    this.seq++; this.active = false;
+    this.el.pause();
+    Captions.hide();
+    try { if ("speechSynthesis" in window) speechSynthesis.cancel(); } catch {}
+    this.setBtn(null); this.btn = null;
+  },
+  // Short pieces so the first sentence starts quickly; the rest load while it plays.
+  chunks(text) {
+    const sentences = text.match(/[^.!?]+[.!?]+["”’)]*\s*|[^.!?]+$/g) || [text];
+    const out = [];
+    for (const sn of sentences) {
+      const last = out[out.length - 1];
+      if (out.length > 1 && (last + sn).length <= 220) out[out.length - 1] = last + sn; else out.push(sn);
+    }
+    return out.map(x => x.trim()).filter(Boolean);
+  },
+  fetchUrl(text, g) {
+    const key = g.id + "|" + text;
+    if (!this.urls.has(key)) {
+      const pr = fetch("/api/tts", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text, guide: g.id }) })
+        .then(async r => {
+          if (!r.ok) { const e = new Error(`voice ${r.status}`); e.status = r.status; throw e; }
+          return URL.createObjectURL(await r.blob());
+        });
+      pr.catch(() => this.urls.delete(key));
+      this.urls.set(key, pr);
+    }
+    return this.urls.get(key);
+  },
+  async say(text, g = guide(), btn = null, { reaction = false } = {}) {
+    this.stop();
+    const my = this.seq;
+    text = String(text).replace(/[*#_`]/g, "").replace(/\s+/g, " ").trim();
+    if (!text) return;
+    this.active = true; this.reacting = reaction;
+    this.btn = btn; this.setBtn("loading");
+    if (!reaction) tour("voice");
+    const finish = () => { if (my !== this.seq) return; this.active = false; this.setBtn(null); this.btn = null; Captions.done(); };
+    let parts = [text];
+    if (this.on) {
+      parts = this.chunks(text);
+      try {
+        for (let i = 0; i < parts.length; i++) {
+          if (i + 1 < parts.length) this.fetchUrl(parts[i + 1], g).catch(() => {});   // always one piece ahead
+          const url = await this.fetchUrl(parts[i], g);
+          if (my !== this.seq) return;   // stopped, or something else started talking
+          this.el.src = url;
+          const done = new Promise(res => { this.el.onended = res; this.el.onpause = res; });
+          await this.el.play();
+          this.setBtn("playing");
+          Captions.line(parts[i], g, isFinite(this.el.duration) ? this.el.duration : 0);
+          await done;
+          if (my !== this.seq) return;
+          parts[i] = "";
+        }
+        finish();
+        return;
+      } catch (e) {
+        if (my !== this.seq) return;
+        console.warn(`${g.name}'s ElevenLabs voice failed (${e.message}); using the device voice.`);
+        if ([401, 402, 403].includes(e.status)) {   // out of credits or bad key: stop asking for this session
+          this.on = false; this.blocked = true;
+          announce("The guide voices are out of credits for now, so your device's voice will read instead.");
+        } else announce(`${g.name}'s voice didn't load, so your device's voice is reading instead.`);
+      }
+    }
+    // Device voice: one sentence at a time so the captions can follow along.
+    const rest = this.chunks(parts.join(" ").trim());
+    if (!("speechSynthesis" in window)) { Captions.line(rest.join(" "), g); finish(); return; }
+    let i = 0;
+    const next = () => {
+      if (my !== this.seq) return;
+      if (i >= rest.length) return finish();
+      const t = rest[i++], secs = t.length / (14 * g.rate);
+      let started = false, moved = false;
+      const go = () => { if (moved) return; moved = true; clearTimeout(watchdog); next(); };
+      // Some systems never fire speech events (no voices installed). Keep the captions moving anyway.
+      const watchdog = setTimeout(() => { if (!started && my === this.seq) { Captions.line(t, g, secs); setTimeout(go, secs * 1000 + 300); } }, 1200);
+      try {
+        const u = new SpeechSynthesisUtterance(t); u.pitch = g.pitch; u.rate = g.rate;
+        u.onstart = () => { started = true; if (my === this.seq) Captions.line(t, g, secs); };
+        u.onend = go; u.onerror = go;
+        speechSynthesis.speak(u);
+      } catch { go(); }
+    };
+    this.setBtn("playing"); next();
+  }
+};
+document.addEventListener("pointerdown", () => Voice.unlock(), { once: true, capture: true });
+document.addEventListener("keydown", () => Voice.unlock(), { once: true, capture: true });
+// Short in-game reactions. They never talk over a card being read, and they're spaced out so they don't nag.
+let lastReact = 0;
+function react(ev) {
+  if (!settings.reactions) return;
+  const g = guide(), lines = GUIDE_LINES[g.id][ev];
+  if (!lines || (Voice.active && !Voice.reacting)) return;
+  const now = performance.now(); if (now - lastReact < 1800) return; lastReact = now;
+  Voice.say(lines[Math.floor(Math.random() * lines.length)], g, null, { reaction: true });
 }
+function preloadReactions() {
+  if (!Voice.on || !settings.reactions) return;
+  const g = guide(), all = GUIDE_LINES[g.id];
+  Object.keys(all).filter(ev => ev !== "shelf").forEach(ev => all[ev].forEach(l => Voice.fetchUrl(l, g).catch(() => {})));
+}
+// Auto-read (the setting) reads each card as it opens; the Read to me buttons read on demand, even with the setting off.
+function speak(text, force = false, btn = null) { if (settings.speak || force) Voice.say(text, guide(), btn); }
+// A Read to me button that toggles: tap to read, tap again to stop.
+function readButton(btn, text) { btn.onclick = () => { if (Voice.btn === btn) Voice.stop(); else speak(text, true, btn); }; }
+
+function renderGuidePickers() {
+  $("#guidePick").innerHTML = GUIDES.map(g => `
+    <label class="guide">
+      <input class="sr-only" type="radio" name="guide" value="${g.id}" ${g.id === settings.guide ? "checked" : ""}>
+      <span class="em" aria-hidden="true">${sprite(g.spr)}</span>
+      <b>${esc(g.name)}</b>
+      <span class="pr">${g.pronouns}</span>
+      <small>${esc(g.tag)}</small>
+      <button type="button" class="btn mini hear" data-hear="${g.id}" aria-label="Hear ${esc(g.name)}">${icon("volume-2")} Hear</button>
+    </label>`).join("");
+  $("#setGuide").innerHTML = GUIDES.map(g => `<option value="${g.id}" ${g.id === settings.guide ? "selected" : ""}>${esc(g.name)} (${g.pronouns})</option>`).join("");
+}
+function setGuide(id) {
+  if (id === settings.guide) return;
+  settings.guide = id; store.set("settings", settings);
+  applyGuide(true);
+}
+function applyGuide(reset) {
+  const g = guide();
+  document.querySelectorAll(".g-name").forEach(el => { el.textContent = g.name; });
+  document.querySelectorAll(".g-art").forEach(el => { el.innerHTML = sprite(g.spr, el.classList.contains("xl") ? "xl" : ""); });
+  if (reset || !$("#chatLog").children.length) {
+    AI.history = [];
+    $("#chatLog").innerHTML = `<div class="msg bot"><p>${esc(g.hello)} Ask me anything about plastic, labels or recycling.</p></div>`;
+    $("#coralLast").textContent = g.hello;
+  }
+}
+$("#guidePick").addEventListener("change", e => { if (e.target.name === "guide") { setGuide(e.target.value); speak(guide().hello, true); } });
+$("#guidePick").addEventListener("click", e => {
+  const b = e.target.closest("[data-hear]"); if (!b) return;
+  e.preventDefault();   // hear without also selecting
+  const g = GUIDES.find(x => x.id === b.dataset.hear);
+  if (Voice.btn === b) Voice.stop(); else Voice.say(g.hello, g, b);
+});
 
 /* ---------- sound ---------- */
 let actx = null;
@@ -580,16 +991,17 @@ const sfx = {
 /* =====================================================================
    GEMINI
    ===================================================================== */
-const CORAL_SYSTEM = `You are Coral, a friendly ocean-science guide inside "Clawcean", an educational claw-machine game about microplastics and the everyday ingredients that become ocean waste.
-Audience: teens and adults with any background; many players are students. Use plain, welcoming language.
-Rules: be scientifically accurate and say when evidence is uncertain; keep answers under 110 words unless asked for more; prefer short bullet lists for steps; always remind people that recycling and disposal rules differ by town when giving disposal advice; never shame anyone; no medical advice; stay on topics of plastics, oceans, sustainability, and the game.`;
+const guideSystem = () => { const g = guide(); return `You are ${g.name} (${g.pronouns}), ${g.persona}. You are the player's ocean-science guide inside "Clawcean", an educational claw-machine game about microplastics and the everyday ingredients that become ocean waste.
+Audience: mostly middle and high school students. Write at a middle-school reading level: short sentences, everyday words, explain any science word you use.
+Rules: be scientifically accurate and say when evidence is uncertain; keep answers under 80 words unless asked for more; prefer short bullet lists for steps; always remind people that recycling and disposal rules differ by town when giving disposal advice; never shame anyone; no medical advice; stay on topics of plastics, oceans, sustainability, and the game.
+Never use emoji. Stay in character, but being clear and correct always comes first.`; };
 
 const AI = {
   mode: "off", model: "gemini-flash-latest", history: [],
   async init() {
     try {
       const r = await fetch("/api/health", { cache: "no-store" });
-      if (r.ok) { const j = await r.json(); if (j && j.gemini) { this.mode = "server"; this.model = j.model || this.model; this.render(); return; } }
+      if (r.ok) { const j = await r.json(); Voice.on = !!(j && j.voices) && !Voice.blocked; if (j && j.gemini) { this.mode = "server"; this.model = j.model || this.model; this.render(); return; } }
     } catch {}
     const key = store.get("geminiKey", "");
     if (key) { this.mode = "key"; this.model = settings.model || this.model; }
@@ -604,7 +1016,7 @@ const AI = {
     $("#coralMode").textContent = this.mode === "off" ? "(offline answers)" : "(powered by Gemini)";
   },
   get on() { return this.mode !== "off"; },
-  async generate({ system = CORAL_SYSTEM, contents, json = false, temperature = 0.6 }) {
+  async generate({ system = guideSystem(), contents, json = false, temperature = 0.6 }) {
     const body = { contents, systemInstruction: { parts: [{ text: system }] }, generationConfig: { temperature, maxOutputTokens: 4096 } };
     if (json) body.generationConfig.responseMimeType = "application/json";
     let r;
@@ -625,7 +1037,7 @@ const AI = {
     const mod = game.moduleIdx < MODULES.length ? MODULES[game.moduleIdx] : null;
     const context = mod ? `(The player is on module "${mod.title}: ${mod.sub}". Key ingredients: ${mod.tuned.join(", ")}.)\n` : "";
     this.history.push({ role: "user", parts: [{ text: context + text }] });
-    if (this.history.length > 12) this.history = this.history.slice(-12);
+    if (this.history.length > 11) this.history = this.history.slice(-11);   // odd length keeps a user turn first, which Gemini requires
     try {
       const out = await this.generate({ contents: this.history });
       this.history.push({ role: "model", parts: [{ text: out }] });
@@ -640,11 +1052,12 @@ function offlineAnswer(q) {
   const words = t.split(/\W+/).filter(w => w.length > 3);
   let best = null, bestScore = 0;
   for (const x of all) {
-    const hay = (x.l.h + " " + x.l.p + " " + x.m.tuned.join(" ")).toLowerCase();
+    const hay = (x.m.sub + " " + x.l.h + " " + x.l.p + " " + x.m.tuned.join(" ")).toLowerCase();
     const s = words.reduce((a, w) => a + (hay.includes(w) ? 1 : 0), 0);
     if (s > bestScore) { bestScore = s; best = x; }
   }
-  for (const it of ALL_ITEMS) if (t.includes(it.name.toLowerCase().split(" ").pop())) return `**${it.name}**: ${it.harm}\n- ${it.dispose.join("\n- ")}`;
+  const ITEM_WORDS = { scrub: "scrub|microbeads?", glitter: "glitter", toothpaste: "toothpaste", foundation: "foundation|makeup", fleece: "fleece", scarf: "scarf", sportshirt: "athletic|gym clothes|sportswear", socks: "socks?", cup: "straws?|soda cup", bag: "shopping bags?|plastic bags?", foam: "foam|styrofoam", cutlery: "cutlery|utensils?|forks?", butt: "cigarettes?|butts?", wipes: "wipes?", mask: "masks?", teabag: "tea ?bags?", tire: "tires?|tyres?", paint: "paint", line: "fishing line|fishing", balloon: "balloons?" };
+  for (const it of ALL_ITEMS) if (new RegExp(`\\b(${ITEM_WORDS[it.id]})\\b`, "i").test(t)) return `**${it.name}**: ${it.bad}\n- **Where it goes:** ${it.bin[1]}\n- **Don't:** ${it.dont}.\n- **Try instead:** ${it.swap}.`;
   if (best && bestScore > 0) return `From the "${best.m.title}" lesson, **${best.l.h}**: ${best.l.p}`;
   return "I'm in offline mode, so I can only answer from the game's lessons. Try asking about microbeads, laundry, foam, wipes, tires or fishing line. Connect Gemini in Settings for open questions.";
 }
@@ -655,11 +1068,21 @@ function offlineAnswer(q) {
 const W = 960, H = 540, RAIL_Y = 26, REST_Y = 78, SAND_Y = 470, CHUTE_X = 56, MIN_X = 56, MAX_X = 920;
 const game = {
   phase: "title",            // title | lesson | scan | aim | busy | catch | summary | final
-  moduleIdx: 0, score: 0, tokens: 0, player: "", calm: false,
+  moduleIdx: 0, score: 0, lives: 0, maxLives: 0, player: "", calm: false, demo: false, run: 0,
   items: [], round: null, perModule: [], quiz: [], log: [], finished: false,
   claw: { x: CHUTE_X, y: REST_Y, open: 1, state: "idle", held: null, goalX: null, t: 0, slip: false, vx: 0, sway: 0 },
-  timer: 0, banner: { text: "", kind: "info", until: 0 }, fx: [], fish: [], bubbles: [], specks: []
+  timer: 0, banner: { text: "", kind: "info", until: 0 }, fx: [], fish: [], bubbles: [], specks: [],
+  visitors: [], shelf: [], before: "", hurried: false
 };
+// Sea friends that come back after a good dive (at least half the lit items rescued), one per dive.
+const FRIENDS = [
+  { spr: "jelly", name: "A jellyfish", kind: "drift" }, { spr: "turtle", name: "A sea turtle", kind: "swim" },
+  { spr: "dolphin", name: "A dolphin", kind: "swim" }, { spr: "crab", name: "A crab", kind: "walk" }, { spr: "coral", name: "A coral reef", kind: "grow" }
+];
+// My Shelf: products scanned in Label Lens float in the tank as bonus catches.
+const SHELF_SPOTS = [{ x: 330, y: 300 }, { x: 560, y: 270 }, { x: 760, y: 320 }];
+const SHELF_MAX = 3;   // bonus items per game (floating + already caught)
+const shelfRoom = () => SHELF_MAX - game.shelf.length - (game.shelfCaught || 0);
 
 function setupItems() {
   const rnd = mulberry(7);
@@ -667,7 +1090,6 @@ function setupItems() {
   const slots = [];
   for (let i = 0; i < 10; i++) slots.push({ x: 168 + i * 78, y: SAND_Y - 18, row: 0 });
   for (let i = 0; i < 10; i++) slots.push({ x: 206 + i * 78, y: SAND_Y + 30, row: 1 });
-  const order = ALL_ITEMS.map((_, i) => i);
   // interleave modules so lit items are spread across the tank
   const inter = [];
   for (let k = 0; k < 4; k++) for (let m = 0; m < MODULES.length; m++) inter.push(m * 4 + k);
@@ -676,131 +1098,148 @@ function setupItems() {
     const def = ALL_ITEMS[idx], s = slots[i];
     return { ...def, x: s.x, y: s.y, homeX: s.x, homeY: s.y, row: s.row, r: s.row ? 30 : 26, state: "rest", phase: rnd() * Math.PI * 2, vy: 0, lit: 0 };
   });
-  void order;
+  game.shelf.forEach(placeShelfItem);
 }
+function placeShelfItem(def, i = game.items.filter(x => x.mine).length) {
+  const spot = SHELF_SPOTS[i % SHELF_SPOTS.length];
+  game.items.push({ ...def, x: spot.x, y: spot.y, homeX: spot.x, homeY: spot.y, row: 2, r: 26, state: "rest", phase: i * 2.1, vy: 0, lit: 0 });
+}
+function addToShelf(r) {
+  const def = {
+    id: "mine" + Date.now().toString(36), mine: true, mod: -1, spr: "bottle",
+    name: String(r.product && r.product !== "Your product" ? r.product : "Your product").slice(0, 28),
+    ingredients: r.hits.map(h => [h.name, 1]),
+    bad: (r.hits[0] && r.hits[0].why ? `${r.hits[0].name}: ${r.hits[0].why}` : "It has plastic ingredients that can end up in the water."),
+    bin: ["trash", r.disposal || "Use it up, keep it closed and put it in the trash."], dont: "rinse it down the drain", swap: r.swap || "Look for products labeled microplastic-free."
+  };
+  game.shelf.push(def);
+  const slot = SHELF_SPOTS.findIndex(sp => !game.items.some(x => x.mine && x.state !== "gone" && x.homeX === sp.x));
+  placeShelfItem(def, slot < 0 ? 0 : slot);
+}
+const modTitle = it => it.mine ? "My Shelf" : MODULES[it.mod].title;
 function initWorld() {
   const rnd = mulberry(42);
   game.fish = Array.from({ length: 8 }, (_, i) => ({ x: rnd() * W, y: 110 + rnd() * 250, s: 0.6 + rnd() * 0.7, v: (rnd() > .5 ? 1 : -1) * (18 + rnd() * 30), hue: ["#ffb347", "#7fd8ff", "#ff8fab", "#b4f8c8"][i % 4], idx: i }));
   game.bubbles = Array.from({ length: 26 }, () => ({ x: rnd() * W, y: rnd() * H, r: 1.5 + rnd() * 4, v: 14 + rnd() * 30 }));
   game.specks = Array.from({ length: 140 }, () => ({ x: rnd() * W, y: 60 + rnd() * (SAND_Y - 60), c: ["#ff9ecb", "#9ee6ff", "#ffffff", "#ffe08a", "#c5a3ff"][Math.floor(rnd() * 5)], v: 4 + rnd() * 10, p: rnd() * 6 }));
 }
-function rescuedCount() { return game.items.filter(i => i.state === "gone").length; }
+function rescuedCount() { return game.items.filter(i => i.state === "gone" && !i.mine).length; }
 function clarity() { return rescuedCount() / TOTAL_ITEMS; }
 
 /* ---------- banner ---------- */
-function showBanner(text, kind = "info", ms = 2400) {
-  const b = $("#banner"); b.textContent = text; b.className = "banner " + kind; b.style.opacity = 1;
+function showBanner(text, kind = "info", ms = 2400, ic = "") {
+  const b = $("#banner"); b.innerHTML = (ic ? icon(ic) : "") + `<span>${esc(text)}</span>`; b.className = "banner " + kind; b.style.opacity = 1;
   game.banner.until = performance.now() + ms;
 }
 function updateBanner(now) { if (game.banner.until && now > game.banner.until) { $("#banner").style.opacity = 0; game.banner.until = 0; } }
 
 /* ---------- HUD + panel ---------- */
 function updateHUD() {
-  $("#hudModule").textContent = game.phase === "title" ? "—" : game.finished ? "Done" : `${Math.min(game.moduleIdx + 1, 5)} / 5`;
+  $("#hudModule").textContent = game.phase === "title" ? "—" : game.demo ? "Demo" : game.finished ? "Done" : `${Math.min(game.moduleIdx + 1, 5)} / 5`;
   $("#hudRound").textContent = game.round ? `${game.round.caught} / ${game.round.total}` : `${rescuedCount()} / ${TOTAL_ITEMS}`;
   $("#hudScore").textContent = game.score.toLocaleString();
   const aiming = game.phase === "aim";
   $("#hudTimer").textContent = game.calm ? "Calm" : aiming ? `${Math.ceil(game.timer)}s` : "—";
   const canMove = aiming && game.claw.state === "idle";
   $("#leftBtn").disabled = $("#rightBtn").disabled = $("#dropBtn").disabled = !canMove;
-  $("#dropBtn").textContent = game.tokens > 0 && aiming ? `DROP · 🐚${game.tokens}` : "DROP";
+  $("#hudLives").innerHTML = game.round ? hearts(game.lives, game.maxLives) : "—";
+  $("#hudLives").setAttribute("aria-label", game.round ? `${game.lives} of ${game.maxLives} tries left` : "No dive running");
+  // After the game ends, the big button becomes "play again" so closing the report never leaves you stuck.
+  if (game.finished) { $("#dropBtn").disabled = false; $("#dropBtn").innerHTML = `${icon("play")} PLAY AGAIN`; }
+  else $("#dropBtn").textContent = "DROP";
 }
 function updatePanel() {
   const prog = $("#modProgress"); prog.innerHTML = "";
-  MODULES.forEach((m, i) => { const s = document.createElement("span"); s.className = i < game.moduleIdx || game.finished ? "done" : i === game.moduleIdx && game.phase !== "title" ? "now" : ""; s.title = m.title; prog.appendChild(s); });
+  (game.demo ? MODULES.slice(0, 1) : MODULES).forEach((m, i) => { const s = document.createElement("span"); s.className = i < game.moduleIdx || game.finished ? "done" : i === game.moduleIdx && game.phase !== "title" ? "now" : ""; s.title = m.title; prog.appendChild(s); });
   const mod = MODULES[Math.min(game.moduleIdx, MODULES.length - 1)];
   if (game.phase === "title") {
     $("#panelEyebrow").textContent = "Field guide"; $("#panelTitle").textContent = "Five dives, twenty pieces of plastic";
   } else if (game.finished) {
-    $("#panelEyebrow").textContent = "Expedition complete"; $("#panelTitle").textContent = `${rescuedCount()} of ${TOTAL_ITEMS} items rescued`;
+    $("#panelEyebrow").textContent = game.demo ? "Demo complete" : "Expedition complete"; $("#panelTitle").textContent = `${rescuedCount()} of ${game.demo ? mod.items.length : TOTAL_ITEMS} items rescued`;
   } else {
-    $("#panelEyebrow").textContent = `Module ${game.moduleIdx + 1} · ${mod.sub}`; $("#panelTitle").textContent = `${mod.emoji} ${mod.title}`;
+    $("#panelEyebrow").textContent = `${game.demo ? "Demo dive" : `Dive ${game.moduleIdx + 1}`} · ${mod.sub}`; $("#panelTitle").innerHTML = `${art(mod.art, "inl")} ${esc(mod.title)}`;
   }
+  $("#tourBox").hidden = !game.demo;
   const chips = $("#panelChips");
   if (game.phase === "title") chips.innerHTML = '<span class="chip">Finish a lesson to calibrate</span>';
   else chips.innerHTML = mod.tuned.map(t => `<span class="chip plastic">${esc(t)}</span>`).join("");
   const log = $("#catchLog");
-  log.innerHTML = game.log.slice().reverse().map(id => { const it = game.items.find(x => x.id === id); return `<li><button type="button" data-item="${it.id}"><span class="em" aria-hidden="true">${it.emoji}</span><span><b>${esc(it.name)}</b><small>${esc(MODULES[it.mod].title)}</small></span></button></li>`; }).join("");
+  log.innerHTML = game.log.slice().reverse().map(id => game.items.find(x => x.id === id)).filter(Boolean).map(it => { return `<li><button type="button" data-item="${it.id}">${sprite(it.spr)}<span><b>${esc(it.name)}</b><small>${esc(modTitle(it))}</small></span></button></li>`; }).join("");
   $("#logEmpty").hidden = game.log.length > 0;
   const sug = $("#suggest");
   const q = game.phase === "title" ? ["What counts as a microplastic?", "How do microplastics hurt sea life?"] :
-    [`Which products near me have ${mod.tuned[0].toLowerCase()}?`, `Give me one easy habit for "${mod.title}".`];
-  sug.innerHTML = q.map(s => `<button type="button">${esc(s)}</button>`).join("");
+    [`Which everyday products have ${mod.tuned[0]} in them?`, `Give me one easy habit for "${mod.title}".`];
+  sug.innerHTML = $("#coralSuggest").innerHTML = q.map(s => `<button type="button">${esc(s)}</button>`).join("");
   updateHUD();
 }
 
 /* =====================================================================
    FLOW
    ===================================================================== */
-function openDlg(id) { const d = $(id); if (!d.open) d.showModal(); }
+function openDlg(id) { const d = $(id); if (!d.open) d.showModal(); Captions.raise(); }
 function closeDlg(id) { const d = $(id); if (d.open) d.close(); }
 
-function startGame() {
+function startGame(demo = false) {
   game.player = ($("#playerName").value || "").trim().slice(0, 20) || "Anonymous diver";
   store.set("player", game.player);
   settings.calm = $("#optCalm").checked; settings.speak = $("#optSpeak").checked;
   game.calm = settings.calm; applySettings();
-  Object.assign(game, { moduleIdx: 0, score: 0, tokens: 0, round: null, perModule: [], quiz: [], log: [], finished: false });
+  // The demo is one dive with a +1 demo try, so there's time to try every feature.
+  Object.assign(game, { moduleIdx: 0, score: 0, lives: 0, maxLives: 0, round: null, perModule: [], quiz: [], log: [], finished: false, demo });
+  game.run++; heldPopups = []; tourDone.clear(); renderTours();
+  game.visitors = []; game.before = ""; game.shelfCaught = 0;
   setupItems();
+  // Snapshot the murky tank for the before/after slider on the results screen.
+  requestAnimationFrame(() => requestAnimationFrame(() => { try { game.before = cv.toDataURL("image/jpeg", 0.75); } catch {} }));
   closeDlg("#welcomeDlg");
   openLesson(0);
 }
 
-/* ---------- lesson ---------- */
-let lessonStep = 0;
+/* ---------- lesson: one panel of picture tiles + the quick check ---------- */
+const TILE_COLORS = ["", "c-sky", "c-kelp"];
 function openLesson(i) {
-  game.moduleIdx = i; game.phase = "lesson"; lessonStep = 0; game.round = null;
-  updatePanel(); renderLesson(); openDlg("#lessonDlg");
+  game.moduleIdx = i; game.phase = "lesson"; game.round = null;
+  updatePanel(); renderLesson(); openDlg("#lessonDlg"); tour("lesson");
 }
 function renderLesson() {
-  const m = MODULES[game.moduleIdx], body = $("#lessonBody");
-  const n = m.lessons.length;
-  if (lessonStep < n) {
-    const l = m.lessons[lessonStep];
-    body.innerHTML = `
-      <div class="eyebrow">Module ${game.moduleIdx + 1} of 5 · ${esc(m.sub)}</div>
-      <h2 id="lessonTitle">${m.emoji} ${esc(m.title)}</h2>
-      <article class="lesson-card">
+  const m = MODULES[game.moduleIdx], qz = m.quiz, body = $("#lessonBody");
+  const spoken = m.lessons.map(l => `${l.h}. ${l.p}`).join(" ") + ` Quick check: ${qz.q} ${qz.options.map((o, k) => `${"ABCD"[k]}: ${o}.`).join(" ")}`;
+  body.innerHTML = `
+    <div class="dlg-head">
+      <span class="eyebrow">${game.demo ? "Demo dive" : `Dive ${game.moduleIdx + 1} of 5`} · ${esc(m.sub)}</span>
+      <h2 id="lessonTitle">${art(m.art, "inl")} ${esc(m.title)}</h2>
+      <button class="btn" type="button" id="lsRead">${icon("volume-2")} Read to me</button>
+    </div>
+    <div class="tiles">${m.lessons.map((l, k) => `
+      <article class="tile ${TILE_COLORS[k]}">
+        <div class="ico" aria-hidden="true">${art(l.icon)}</div>
         <h3>${esc(l.h)}</h3>
         <p>${esc(l.p)}</p>
         <div class="stat">${esc(l.stat)}</div>
-      </article>
-      <div class="row">
-        <div class="dots" aria-label="Card ${lessonStep + 1} of ${n + 1}">${Array.from({ length: n + 1 }, (_, k) => `<i class="${k <= lessonStep ? "on" : ""}"></i>`).join("")}</div>
-        <span style="margin-left:auto"></span>
-        <button class="btn" type="button" id="lsRead">🔊 Read</button>
-        ${lessonStep > 0 ? '<button class="btn" type="button" id="lsBack">Back</button>' : ""}
-        <button class="btn primary" type="button" id="lsNext">${lessonStep === n - 1 ? "Quick check →" : "Next →"}</button>
-      </div>`;
-    $("#lsNext").onclick = () => { lessonStep++; renderLesson(); };
-    if ($("#lsBack")) $("#lsBack").onclick = () => { lessonStep--; renderLesson(); };
-    $("#lsRead").onclick = () => { const was = settings.speak; settings.speak = true; speak(`${l.h}. ${l.p}`); settings.speak = was; };
-    speak(`${l.h}. ${l.p}`);
-    $("#lsNext").focus();
-  } else {
-    const qz = m.quiz;
-    body.innerHTML = `
-      <div class="eyebrow">Quick check · get it right to earn a 🐚 second chance</div>
-      <h2 id="lessonTitle">${esc(qz.q)}</h2>
-      <div class="quiz" role="group" aria-label="Answers">${qz.options.map((o, k) => `<button type="button" data-k="${k}">${esc(o)}</button>`).join("")}</div>
+      </article>`).join("")}</div>
+    <section class="quiz-box">
+      <div class="quiz-q" id="quizQ"><span class="eyebrow">${icon("bolt")} Quick check · right answer = ${icon("heart-full", "red")} bonus try this dive</span>${esc(qz.q)}</div>
+      <div class="quiz" role="group" aria-labelledby="quizQ">${qz.options.map((o, k) => `<button type="button" data-k="${k}"><span class="k" aria-hidden="true">${"ABCD"[k]}</span>${esc(o)}</button>`).join("")}</div>
       <div id="quizFb"></div>
-      <div class="row end"><button class="btn primary" type="button" id="lsGo" hidden>Light up the ocean →</button></div>`;
-    speak(qz.q + " Options: " + qz.options.join(", "));
-    body.querySelectorAll(".quiz button").forEach(b => b.onclick = () => {
-      const k = +b.dataset.k, ok = k === qz.answer;
-      body.querySelectorAll(".quiz button").forEach(x => { x.disabled = true; if (+x.dataset.k === qz.answer) x.classList.add("right"); });
-      if (!ok) b.classList.add("wrong");
-      game.quiz[game.moduleIdx] = ok;
-      if (ok) { game.tokens++; game.score += 50; sfx.grab(); }
-      else sfx.miss();
-      $("#quizFb").innerHTML = `<div class="feedback ${ok ? "" : "bad"}"><b>${ok ? "Correct! +50 points and a 🐚 second chance." : "Not quite."}</b> ${esc(qz.why)}</div>`;
-      announce((ok ? "Correct. " : "Not quite. ") + qz.why);
-      speak((ok ? "Correct. " : "Not quite. ") + qz.why);
-      $("#lsGo").hidden = false; $("#lsGo").focus(); updateHUD();
-    });
-    $("#lsGo").onclick = () => { closeDlg("#lessonDlg"); beginRound(); };
-    body.querySelector(".quiz button").focus();
-  }
+    </section>
+    <div class="row center"><button class="btn primary" type="button" id="lsGo" hidden>Light up the ocean →</button></div>`;
+  readButton($("#lsRead"), spoken);
+  speak(spoken, false, $("#lsRead"));
+  body.querySelectorAll(".quiz button").forEach(b => b.onclick = () => {
+    const k = +b.dataset.k, ok = k === qz.answer;
+    body.querySelectorAll(".quiz button").forEach(x => { x.disabled = true; if (+x.dataset.k === qz.answer) x.classList.add("right"); });
+    if (!ok) b.classList.add("wrong");
+    game.quiz[game.moduleIdx] = ok;
+    if (ok) { game.score += 50; sfx.grab(); }
+    else sfx.miss();
+    $("#quizFb").innerHTML = `<div class="feedback ${ok ? "" : "bad"}"><b>${ok ? `${icon("check")} Correct! +50 points and a ${icon("heart-full", "red")} bonus try for this dive.` : `${icon("close")} Not quite!`}</b> ${esc(qz.why)}</div>`;
+    announce((ok ? "Correct. " : "Not quite. ") + qz.why);
+    speak((ok ? "Correct. " : "Not quite. ") + qz.why);
+    tour("quiz");
+    $("#lsGo").hidden = false; $("#lsGo").focus(); updateHUD();
+  });
+  $("#lsGo").onclick = () => { Voice.stop(); closeDlg("#lessonDlg"); beginRound(); };
+  $("#lsRead").focus();
 }
 
 /* ---------- round ---------- */
@@ -810,18 +1249,27 @@ function beginRound() {
   game.phase = "scan";
   game.claw = { x: CHUTE_X, y: REST_Y, open: 1, state: "idle", held: null, goalX: null, t: 0, slip: false, vx: 0, sway: 0 };
   const mod = MODULES[game.moduleIdx];
-  showBanner(`Scanning for ${mod.tuned.slice(0, 2).join(" & ")}…`, "info", 1800);
-  announce(`Scanning the ocean for ${mod.tuned.join(", ")}. ${targets.length} items will light up.`);
+  const bonus = game.quiz[game.moduleIdx] ? 1 : 0;
+  game.maxLives = game.lives = 1 + bonus + (game.demo ? 1 : 0);
+  const why = [bonus && "+1 for your right answer", game.demo && "+1 demo try"].filter(Boolean).join(", ");
+  showBanner(`You get ${game.lives} ${game.lives > 1 ? "tries" : "try"} this dive${why ? ` (${why})` : ""}`, "info", 2400, "heart-full");
+  announce(`You have ${game.lives} ${game.lives > 1 ? "tries" : "try"}. Scanning the ocean for ${mod.tuned.join(", ")}. ${targets.length} items will light up.`);
   updatePanel();
+  preloadReactions();
 }
 function finishScan() {
-  game.phase = "aim"; game.timer = 20;
-  showBanner(`${game.round.total} items lit up. Grab them!`, "info", 2200);
+  game.phase = "aim"; game.timer = 20; game.hurried = false;
+  react("start");
+  const touch = matchMedia("(pointer: coarse)").matches;
+  showBanner(`${game.round.total} items lit up! ${touch ? "Tap the arrows, then DROP" : "← → move · SPACE drops"}`, "info", 2600);
   announce(`${game.round.total} items are lit. Use left and right arrows to move the claw, space to drop.${game.calm ? " Press T to jump to the next lit item." : ""}`);
   $("#tank").focus({ preventScroll: true });
   updateHUD();
 }
-function isTarget(it) { return game.round && game.round.targets.includes(it.id) && it.state !== "gone"; }
+function isTarget(it) {
+  if (!game.round || it.state === "gone") return false;
+  return it.mine ? !game.round.over : game.round.targets.includes(it.id);   // My Shelf items count in every dive
+}
 
 function itemUnderClaw(tolExtra = 0) {
   const c = game.claw; let best = null, bd = 1e9;
@@ -834,7 +1282,7 @@ function itemUnderClaw(tolExtra = 0) {
 }
 
 function drop() {
-  if (game.phase !== "aim" || game.claw.state !== "idle") return;
+  if (game.phase !== "aim" || game.claw.state !== "idle" || document.querySelector("dialog[open]")) return;
   const c = game.claw;
   c.state = "down"; c.goalX = null; game.phase = "busy";
   const it = itemUnderClaw();
@@ -855,31 +1303,35 @@ function resolveGrab() {
 
 function turnFailed(reason, it) {
   const r = game.round; r.streak = 0;
-  const msgs = { miss: "The claw came up empty.", slip: `${it ? it.name : "It"} slipped out of the claw!`, wrong: `${it ? it.name : "That"} isn't made of this module's ingredients, so the claw couldn't hold it.`, time: "Time's up — the claw came up empty." };
+  const msgs = { miss: "The claw came up empty.", slip: `${it ? it.name : "It"} slipped out of the claw!`, wrong: `${it ? it.name : "That"} isn't made of this dive's ingredients, so the claw couldn't hold it.` };
   sfx.miss();
-  if (game.tokens > 0) {
-    game.tokens--;
-    showBanner(`${msgs[reason]} 🐚 Second chance used.`, "bad", 2600);
-    announce(`${msgs[reason]} Second chance used. ${game.tokens} left. Try again.`, true);
+  game.lives = Math.max(0, game.lives - 1);
+  if (game.lives > 0) {
+    showBanner(`${msgs[reason]} ${game.lives} ${game.lives > 1 ? "tries" : "try"} left!`, "bad", 2600, "heart-full");
+    announce(`${msgs[reason]} ${game.lives} ${game.lives > 1 ? "tries" : "try"} left. Go again.`, true);
+    react(reason);
     nextTurn();
   } else {
-    showBanner(msgs[reason] + " Turn over.", "bad", 2600);
-    announce(msgs[reason] + " Your turn is over for this module.", true);
+    showBanner(`${msgs[reason]} Out of tries. Dive over!`, "bad", 2600, "heart");
+    announce(msgs[reason] + " You're out of tries. This dive is over.", true);
+    react(game.demo || game.moduleIdx === MODULES.length - 1 ? "outLast" : "out");
     endRound();
   }
 }
 function nextTurn() {
-  game.phase = "aim"; game.timer = 20;
+  game.phase = "aim"; game.timer = 20; game.hurried = false;
   Object.assign(game.claw, { state: "idle", held: null, target: null, result: null, open: 1, y: REST_Y });
   updateHUD();
 }
 function onCaught(it) {
   const r = game.round;
-  r.caught++; r.streak++;
-  const pts = 100 + 25 * (r.streak - 1);
+  game.lastCatchMine = !!it.mine;
+  if (it.mine) { game.shelf = game.shelf.filter(d => d.id !== it.id); game.shelfCaught = (game.shelfCaught || 0) + 1; }
+  else { r.caught++; r.streak++; }
+  const pts = it.mine ? 200 : 100 + 25 * (r.streak - 1);
   game.score += pts;
   it.state = "gone"; game.log.push(it.id);
-  sfx.grab();
+  sfx.grab(); tour("grab");
   game.fx.push({ x: CHUTE_X, y: 300, text: `+${pts}`, t: 0 });
   game.phase = "catch";
   showCatch(it, pts);
@@ -889,91 +1341,134 @@ function afterCatch() {
   const r = game.round;
   if (r.caught >= r.total) {
     game.score += 150; sfx.win();
-    showBanner("Module cleared! +150 bonus", "good", 2600);
+    showBanner("Dive cleared! +150 bonus", "good", 2600, "star-full");
     announce("You rescued every lit item. 150 point bonus.");
+    react("clear");
     endRound(true);
-  } else nextTurn();
+  } else {
+    if (!game.lastCatchMine && r.streak >= 2) react(r.streak >= 3 ? "streak3" : "streak2");
+    nextTurn();
+  }
 }
 function endRound() {
   const r = game.round; r.over = true;
   game.perModule[game.moduleIdx] = { caught: r.caught, total: r.total };
+  r.friend = null;
+  if (r.total && r.caught >= Math.ceil(r.total / 2)) {
+    const f = FRIENDS[game.moduleIdx % FRIENDS.length];
+    r.friend = f;
+    // Pop in already in view (right half, the "after" side of the slider): the game pauses under the summary,
+    // and the results screen photographs the tank.
+    game.visitors.push({ ...f, x: f.kind === "grow" ? 136 : 720 - game.visitors.length * 120, y: f.kind === "walk" ? SAND_Y - 30 : f.kind === "grow" ? SAND_Y - 30 : 150 + game.visitors.length * 40, v: f.kind === "walk" ? 40 : 55, dir: 1, grow: f.kind === "grow" ? 0 : 1, t: Math.random() * 6 });
+  }
   game.phase = "summary";
   Object.assign(game.claw, { state: "home" });
-  setTimeout(showSummary, 1400);
+  const run = game.run;
+  setTimeout(() => { if (game.run === run) gameShow(showSummary); }, 1400);
   updateHUD();
 }
 
 /* ---------- catch card ---------- */
+const BINS = { trash: ["trash", "Trash it"], recycle: ["recycle", "Recycle it"], dropoff: ["map-pin", "Drop it off"], reuse: ["repeat", "Reuse it"] };
 let catchItem = null;
 function showCatch(it, pts) {
   catchItem = it;
-  const m = MODULES[it.mod];
+  const bin = BINS[it.bin[0]];
   $("#catchBody").innerHTML = `
     <div class="catch-head">
-      <div class="catch-orb" aria-hidden="true">${it.emoji}</div>
-      <div>
-        <div class="eyebrow">Rescued · ${esc(m.title)}</div>
-        <h2 id="catchTitle">${esc(it.name)}</h2>
-        ${pts ? `<div class="points">+${pts} points${game.round && game.round.streak > 1 ? ` · ${game.round.streak} in a row` : ""}</div>` : ""}
-      </div>
+      <div class="catch-orb" aria-hidden="true">${sprite(it.spr, "lg")}</div>
+      <span class="eyebrow">${pts ? "Rescued!" : "Catch log"} · ${esc(modTitle(it))}</span>
+      <h2 id="catchTitle">${esc(it.name)}</h2>
+      ${pts ? `<span class="points">+${pts} points${it.mine ? " · My Shelf bonus" : ""}${!it.mine && game.round && game.round.streak > 1 ? ` · ${icon("fire")} ${game.round.streak} in a row` : ""}</span>` : ""}
     </div>
-    <div><div class="section-label">Ingredients · ◆ = plastic</div>
+    <div class="inside"><span class="section-label">What's inside · ◆ = plastic</span>
       <div class="chips">${it.ingredients.map(([n, p]) => `<span class="chip ${p ? "plastic" : ""}">${esc(n)}${p ? '<span class="sr-only"> (plastic)</span>' : ""}</span>`).join("")}</div></div>
-    <div><div class="section-label">Why it harms the ocean</div><p>${esc(it.harm)}</p></div>
-    <div><div class="section-label">How to dispose of it safely</div><ul class="dispose">${it.dispose.map(d => `<li>${esc(d)}</li>`).join("")}</ul></div>
-    <div><div class="section-label">Better swap</div><p>${esc(it.swap)}</p></div>
+    <div class="tiles">
+      <div class="tile c-coral"><div class="ico" aria-hidden="true">${icon("waves")}</div><h3>Why it's bad</h3><p>${esc(it.bad)}</p></div>
+      <div class="tile c-sky"><div class="ico" aria-hidden="true">${icon(bin[0])}</div><h3>${bin[1]}</h3><p>${esc(it.bin[1])}</p><p class="dont">${icon("close")} Don't ${esc(it.dont)}.</p></div>
+      <div class="tile c-kelp"><div class="ico" aria-hidden="true">${icon("lightbulb")}</div><h3>Try instead</h3><p>${esc(it.swap)}</p></div>
+    </div>
+    <p class="town-note">${icon("map-pin")} Every town has its own rules, so check yours!</p>
     <div id="catchAI"></div>
-    <div class="row end">
-      <button class="btn" type="button" id="cRead">🔊 Read</button>
-      <button class="btn" type="button" id="cAI">✦ Tips for where I live</button>
+    <div class="row center">
+      <button class="btn" type="button" id="cRead">${icon("volume-2")} Read to me</button>
+      <button class="btn" type="button" id="cAI">${icon("sparkles")} Tips for my town</button>
       <button class="btn primary" type="button" id="cGo">${pts ? "Keep fishing →" : "Close"}</button>
     </div>`;
   openDlg("#catchDlg");
   const plastics = it.ingredients.filter(x => x[1]).map(x => x[0]).join(", ");
-  const spoken = `You rescued: ${it.name}. Plastic ingredients: ${plastics}. ${it.harm} To dispose of it: ${it.dispose.join(" ")}`;
+  const spoken = `${pts ? guide().cheer + " " : ""}You rescued: ${it.name}. ${it.bad} ${bin[1]}: ${it.bin[1]} Don't ${it.dont}. Try instead: ${it.swap}.`;
   announce(`Rescued ${it.name}. Plastic ingredients: ${plastics}.`);
-  speak(spoken);
-  $("#cRead").onclick = () => { const was = settings.speak; settings.speak = true; speak(spoken); settings.speak = was; };
+  readButton($("#cRead"), spoken);
+  speak(spoken, false, $("#cRead"));
   $("#cAI").onclick = () => localTips(it);
   $("#cGo").onclick = () => closeDlg("#catchDlg");
   $("#cGo").focus();
 }
 async function localTips(it) {
   const box = $("#catchAI");
+  tour("tips");
   if (!AI.on) {
-    box.innerHTML = `<div class="ai-box"><span class="ai-tag">Gemini offline</span><p>Connect Gemini (Settings → Gemini connection, or run the app server) to get tips for where you live. Meanwhile: search "<b>${esc(it.name.toLowerCase())} disposal ${esc(settings.place || "my town")}</b>" on your city or county recycling page.</p></div>`;
+    box.innerHTML = `<div class="ai-box"><span class="ai-tag">Gemini offline</span><p>Connect Gemini in Settings to get tips for your town. For now, search “<b>${esc(it.name.toLowerCase())} disposal ${esc(settings.place || "my town")}</b>” on your city's recycling page.</p></div>`;
     return;
   }
   const place = settings.place || "an unspecified location (give general advice and say how to find local rules)";
   box.innerHTML = `<div class="ai-box"><span class="ai-tag">Gemini</span><span class="spinner"></span> Asking Gemini…</div>`;
   $("#cAI").disabled = true;
   try {
-    const out = await AI.generate({ contents: [{ role: "user", parts: [{ text: `The player just pulled a "${it.name}" out of the ocean in the game. Its plastic ingredients: ${it.ingredients.filter(x => x[1]).map(x => x[0]).join(", ")}.\nThey live in: ${place}.\nGive: (1) 2-3 bullet points on how to dispose of this item there, naming the kind of program or facility to look for (don't invent phone numbers or exact addresses); (2) one realistic swap; (3) one surprising, accurate fact. Under 110 words. End with a short reminder to confirm with the local waste authority.` }] }] });
+    const out = await AI.generate({ contents: [{ role: "user", parts: [{ text: `The player just pulled a "${it.name}" out of the ocean in the game. Its plastic ingredients: ${it.ingredients.filter(x => x[1]).map(x => x[0]).join(", ")}.\nThey live in: ${place}.\nWrite for a middle schooler. Give: (1) 2 short bullet points on how to get rid of this item there, naming the kind of program or place to look for (don't invent phone numbers or exact addresses); (2) one cool, true fact. Under 70 words. End with a short reminder to check the local rules.` }] }] });
     box.innerHTML = `<div class="ai-box"><span class="ai-tag">Gemini · tips for ${esc(settings.place || "you")}</span>${md(out)}</div>`;
-    announce("Gemini tips loaded."); speak(out.replace(/[*#]/g, ""));
+    // Don't talk over the game if the card was closed while Gemini was thinking.
+    if ($("#catchDlg").open) { announce("Gemini tips loaded."); speak(out); }
   } catch (e) {
-    box.innerHTML = `<div class="ai-box"><span class="ai-tag">Gemini</span><p>Couldn't reach Gemini: ${esc(e.message)}. The tips above still apply.</p></div>`;
+    box.innerHTML = `<div class="ai-box"><span class="ai-tag">Gemini</span><p>Couldn't reach Gemini: ${esc(e.message)}. The tips above still work.</p></div>`;
   } finally { const b = $("#cAI"); if (b) b.disabled = false; }
 }
 
 /* ---------- summary ---------- */
+function stars(caught, total, cls = "") {
+  const n = caught >= total ? 3 : caught >= total / 2 ? 2 : caught > 0 ? 1 : 0;
+  return `<span class="stars ${cls}" role="img" aria-label="${n} of 3 stars">${[0, 1, 2].map(i => icon("star-full", i < n ? "" : "off")).join("")}</span>`;
+}
+function hearts(n, max) {
+  return Array.from({ length: max }, (_, i) => icon(i < n ? "heart-full" : "heart", i < n ? "red" : "dim")).join("");
+}
 function showSummary() {
-  const r = game.round, m = MODULES[game.moduleIdx], last = game.moduleIdx === MODULES.length - 1;
+  const r = game.round, m = MODULES[game.moduleIdx], last = game.demo || game.moduleIdx === MODULES.length - 1;
   const missed = game.items.filter(it => it.mod === game.moduleIdx && it.state !== "gone");
   $("#summaryBody").innerHTML = `
-    <div class="eyebrow">Module ${game.moduleIdx + 1} complete</div>
-    <h2 id="summaryTitle">${r.caught === r.total ? "Perfect dive!" : r.caught ? "Nice haul." : "The sea keeps its secrets this time."}</h2>
-    <div class="bigscore">
-      <div><b>${r.caught}/${r.total}</b><small>${esc(m.title)} items rescued</small></div>
-      <div><b>${game.score.toLocaleString()}</b><small>total score</small></div>
-      <div><b>${rescuedCount()}/${TOTAL_ITEMS}</b><small>ocean cleaned</small></div>
+    <div class="dlg-head">
+      <span class="eyebrow">${game.demo ? "Demo dive" : `Dive ${game.moduleIdx + 1}`} done</span>
+      <h2 id="summaryTitle">${r.caught === r.total ? "Stage clear!" : r.caught ? "Nice haul!" : "So close!"}</h2>
+      ${stars(r.caught, r.total)}
     </div>
-    ${missed.length ? `<div><div class="section-label">Still in the water</div><div class="chips">${missed.map(x => `<span class="chip">${x.emoji} ${esc(x.name)}</span>`).join("")}</div><p class="muted" style="margin-top:6px">These stay in the ocean. You can still check their cards in the final report.</p></div>` : ""}
-    <div class="row end"><button class="btn primary" type="button" id="sumGo">${last ? "See final results →" : `Next: ${MODULES[game.moduleIdx + 1].title} →`}</button></div>`;
+    <div class="bigscore">
+      <div><span class="ico" aria-hidden="true">${icon("recycle")}</span><b>${r.caught}/${r.total}</b><small>rescued</small></div>
+      <div><span class="ico" aria-hidden="true">${icon("trophy")}</span><b>${game.score.toLocaleString()}</b><small>score</small></div>
+      <div><span class="ico" aria-hidden="true">${icon("waves")}</span><b>${Math.round(clarity() * 100)}%</b><small>ocean cleaned</small></div>
+    </div>
+    ${r.friend ? `<div class="friend">${sprite(r.friend.spr, "lg")}<b>${esc(r.friend.name)} swam back to the cleaner water!</b></div>` : ""}
+    ${missed.length ? `<div class="inside"><span class="section-label">Still in the sea</span><div class="sprite-row">${missed.map(x => sprite(x.spr, "", x.name).replace("<img", `<img title="${esc(x.name)}"`)).join("")}</div></div>` : ""}
+    <div class="row center"><button class="btn primary" type="button" id="sumGo">${game.demo ? "See my results →" : last ? "Final results →" : `Next dive: ${MODULES[game.moduleIdx + 1].title} →`}</button></div>`;
   openDlg("#summaryDlg");
-  announce(`Module complete. You rescued ${r.caught} of ${r.total}. Score ${game.score}.`);
-  $("#sumGo").onclick = () => { closeDlg("#summaryDlg"); if (last) showFinal(); else openLesson(game.moduleIdx + 1); };
+  announce(`Dive done. You rescued ${r.caught} of ${r.total}. Score ${game.score}.`);
+  $("#sumGo").onclick = () => { closeDlg("#summaryDlg"); if (game.demo) showDemoEnd(); else if (last) showFinal(); else openLesson(game.moduleIdx + 1); };
   $("#sumGo").focus();
+}
+
+/* ---------- before / after slider ---------- */
+function beforeAfter() {
+  if (!game.before) return "";
+  return `<div><div class="section-label">Your tank: drag to compare</div>
+    <div class="ba" id="ba"><img class="ba-after" id="baAfter" alt="The tank after your dives"><img class="ba-before" src="${game.before}" alt="The tank before you started">
+      <span class="ba-tag l">Before</span><span class="ba-tag r">After</span>
+      <input type="range" min="0" max="100" value="50" aria-label="Compare the tank before and after: lower shows more of after, higher shows more of before"></div></div>`;
+}
+function fillAfter() {
+  const ba = $("#ba"); if (!ba) return;
+  ba.querySelector("input").oninput = e => ba.style.setProperty("--pos", e.target.value + "%");
+  // Wait two frames so the clean tank (with any new friends) is drawn before we photograph it.
+  requestAnimationFrame(() => requestAnimationFrame(() => { try { $("#baAfter").src = cv.toDataURL("image/jpeg", 0.8); } catch {} }));
 }
 
 /* ---------- final ---------- */
@@ -984,21 +1479,27 @@ async function showFinal() {
   const entry = { name: game.player, score: game.score, items: total, max: TOTAL_ITEMS, calm: game.calm, date: new Date().toISOString().slice(0, 10) };
   const saved = await Leaderboard.add(entry);
   $("#finalBody").innerHTML = `
-    <div class="eyebrow">Expedition report · ${esc(game.player)}</div>
-    <h2 id="finalTitle">${total === TOTAL_ITEMS ? "You cleaned the whole tank!" : `You rescued ${total} of ${TOTAL_ITEMS}`}</h2>
-    <div class="bigscore">
-      <div><b>${game.score.toLocaleString()}</b><small>final score${game.calm ? " · Calm mode" : ""}</small></div>
-      <div><b>${total}/${TOTAL_ITEMS}</b><small>items rescued</small></div>
-      <div><b>${game.quiz.filter(Boolean).length}/5</b><small>quick checks right</small></div>
+    <div class="dlg-head">
+      <div class="hero-art" aria-hidden="true">${sprite(guide().spr, "xl")}${total === TOTAL_ITEMS ? icon("trophy") : ""}</div>
+      <span class="eyebrow">Ocean report · ${esc(game.player)}</span>
+      <h2 id="finalTitle">${total === TOTAL_ITEMS ? "You cleaned the whole sea!" : "Game over!"}</h2>
+      ${stars(total, TOTAL_ITEMS)}
     </div>
-    <div class="bars">${MODULES.map((m, i) => { const pm = game.perModule[i] || { caught: 0, total: 4 }; return `<div class="bar"><span>${m.emoji} ${esc(m.title)}</span><b>${pm.caught}/${pm.total}</b><div class="track"><div class="fill" style="width:${(pm.caught / Math.max(1, pm.total)) * 100}%"></div></div></div>`; }).join("")}</div>
+    <div class="bigscore">
+      <div><span class="ico" aria-hidden="true">${icon("trophy")}</span><b>${game.score.toLocaleString()}</b><small>score${game.calm ? " · Calm" : ""}</small></div>
+      <div><span class="ico" aria-hidden="true">${icon("recycle")}</span><b>${total}/${TOTAL_ITEMS}</b><small>rescued</small></div>
+      <div><span class="ico" aria-hidden="true">${icon("check")}</span><b>${game.quiz.filter(Boolean).length}/5</b><small>checks right</small></div>
+    </div>
+    ${beforeAfter()}
+    <div class="mods">${MODULES.map((m, i) => { const pm = game.perModule[i] || { caught: 0, total: 4 }; return `<div><span class="ico" aria-hidden="true">${art(m.art)}</span><b>${pm.caught}/${pm.total}</b>${stars(pm.caught, pm.total, "sm")}<small>${esc(m.title)}</small></div>`; }).join("")}</div>
     <div id="pledge"></div>
     <div><div class="section-label">Leaderboard · ${esc(Leaderboard.scopeLabel())}</div><div id="finalLb"></div></div>
-    <div class="row end">
-      <button class="btn" type="button" id="fLens">🔍 Scan a real label</button>
+    <div class="row center">
+      <button class="btn" type="button" id="fLens">${icon("search")} Scan a real label</button>
       <button class="btn primary" type="button" id="fAgain">Play again</button>
     </div>`;
   openDlg("#finalDlg");
+  fillAfter();
   sfx.win();
   announce(`Game over. Final score ${game.score}. You rescued ${total} of ${TOTAL_ITEMS} items.`);
   renderLb($("#finalLb"), saved);
@@ -1006,18 +1507,54 @@ async function showFinal() {
   $("#fLens").onclick = () => { closeDlg("#finalDlg"); openDlg("#lensDlg"); };
   makePledge();
 }
+
+/* ---------- demo results: score + the feature checklist (demo scores skip the leaderboard) ---------- */
+function showDemoEnd() {
+  game.finished = true; game.phase = "final"; game.round = null;
+  updatePanel();
+  const pm = game.perModule[game.moduleIdx] || { caught: 0, total: 4 };
+  $("#finalBody").innerHTML = `
+    <div class="dlg-head">
+      <div class="hero-art" aria-hidden="true">${sprite(guide().spr, "xl")}${icon("finish")}</div>
+      <span class="eyebrow">Demo complete · ${esc(game.player)}</span>
+      <h2 id="finalTitle">${pm.caught === pm.total ? "Perfect dive!" : "Demo done!"}</h2>
+      ${stars(pm.caught, pm.total)}
+    </div>
+    <div class="bigscore">
+      <div><span class="ico" aria-hidden="true">${icon("trophy")}</span><b>${game.score.toLocaleString()}</b><small>score</small></div>
+      <div><span class="ico" aria-hidden="true">${icon("recycle")}</span><b>${pm.caught}/${pm.total}</b><small>rescued</small></div>
+      <div><span class="ico" aria-hidden="true">${icon("compass")}</span><b id="demoCount">0/${TOUR.length}</b><small>features tried</small></div>
+    </div>
+    ${beforeAfter()}
+    <div><div class="section-label">Try the rest</div><ul class="tour big" id="demoTour"></ul></div>
+    <div id="pledge"></div>
+    <p class="center-note">The full game has 5 dives and 20 items, and it posts to the leaderboard.</p>
+    <div class="row center">
+      <button class="btn" type="button" id="fReplay">${icon("reload")} Replay demo</button>
+      <button class="btn primary" type="button" id="fFull">Play the full game →</button>
+    </div>`;
+  openDlg("#finalDlg");
+  fillAfter();
+  sfx.win();
+  announce(`Demo complete. Score ${game.score}. You rescued ${pm.caught} of ${pm.total}.`);
+  renderTours();
+  $("#fReplay").onclick = () => { closeDlg("#finalDlg"); startGame(true); };
+  $("#fFull").onclick = () => { closeDlg("#finalDlg"); openWelcome(); };
+  makePledge();
+}
 async function makePledge() {
   const box = $("#pledge");
-  const weakest = MODULES.map((m, i) => ({ m, pm: game.perModule[i] || { caught: 0, total: 4 } })).sort((a, b) => a.pm.caught / a.pm.total - b.pm.caught / b.pm.total);
-  const fallback = () => `- **${weakest[0].m.title}:** ${weakest[0].m.lessons[2].p.split(". ")[0]}.\n- **${weakest[1].m.title}:** ${weakest[1].m.items[0].dispose[0]}\n- **Everyday:** Check one product label this week with Label Lens and share what you find.`;
-  if (!AI.on) { box.innerHTML = `<div class="ai-box"><span class="ai-tag">Your ocean pledge</span>${md(fallback())}</div>`; return; }
-  box.innerHTML = `<div class="ai-box"><span class="ai-tag">Gemini</span><span class="spinner"></span> Writing your personal ocean pledge…</div>`;
+  const idxs = game.demo ? [game.moduleIdx] : MODULES.map((_, i) => i);
+  const ranked = idxs.map(i => ({ m: MODULES[i], pm: game.perModule[i] || { caught: 0, total: 4 } })).sort((a, b) => a.pm.caught / a.pm.total - b.pm.caught / b.pm.total);
+  const fallback = () => `- **${ranked[0].m.title}:** Don't ${ranked[0].m.items[0].dont}.\n- **Swap it:** ${(ranked[1] || ranked[0]).m.items[1].swap}.\n- **Every day:** Check one label this week with Label Lens.`;
+  if (!AI.on) { box.innerHTML = `<div class="ai-box"><span class="ai-tag">${icon("handshake")} Your ocean pledge</span>${md(fallback())}</div>`; return; }
+  box.innerHTML = `<div class="ai-box"><span class="ai-tag">Gemini</span><span class="spinner"></span> Writing your ocean pledge…</div>`;
   try {
-    const summary = MODULES.map((m, i) => `${m.title} (${m.sub}): rescued ${(game.perModule[i] || {}).caught || 0}/${(game.perModule[i] || {}).total || 4}; quiz ${game.quiz[i] ? "correct" : "missed"}`).join("\n");
-    const out = await AI.generate({ contents: [{ role: "user", parts: [{ text: `Player "${game.player}" finished Clawcean${settings.place ? ` and lives in ${settings.place}` : ""}. Results:\n${summary}\nWrite a short personal "Ocean Pledge": one encouraging sentence, then exactly 3 bullet points of specific, doable actions for this week, weighted toward the modules where they rescued the fewest items. Under 90 words. No hashtags.` }] }], temperature: 0.8 });
-    box.innerHTML = `<div class="ai-box"><span class="ai-tag">Gemini · your ocean pledge</span>${md(out)}</div>`;
+    const summary = idxs.map(i => { const m = MODULES[i]; return `${m.title} (${m.sub}): rescued ${(game.perModule[i] || {}).caught || 0}/${(game.perModule[i] || {}).total || 4}; quiz ${game.quiz[i] ? "correct" : "missed"}`; }).join("\n");
+    const out = await AI.generate({ contents: [{ role: "user", parts: [{ text: `Player "${game.player}" finished ${game.demo ? "a one-dive demo of " : ""}Clawcean${settings.place ? ` and lives in ${settings.place}` : ""}. Results:\n${summary}\nWrite a short "Ocean Pledge" for a middle schooler: one cheerful sentence, then exactly 3 bullet points of easy, specific things to do this week, focused on the topics where they rescued the fewest items. Under 70 words. No hashtags.` }] }], temperature: 0.8 });
+    box.innerHTML = `<div class="ai-box"><span class="ai-tag">${icon("sparkles")} Gemini · your ocean pledge</span>${md(out)}</div>`;
   } catch (e) {
-    box.innerHTML = `<div class="ai-box"><span class="ai-tag">Your ocean pledge</span>${md(fallback())}</div>`;
+    box.innerHTML = `<div class="ai-box"><span class="ai-tag">${icon("handshake")} Your ocean pledge</span>${md(fallback())}</div>`;
   }
 }
 
@@ -1041,7 +1578,7 @@ const Leaderboard = {
 };
 function renderLb(el, data) {
   const entries = (data.entries || data || []).slice(0, 10);
-  if (!entries.length) { el.innerHTML = `<p class="empty">No scores yet. Finish all five modules to post the first one.</p>`; return; }
+  if (!entries.length) { el.innerHTML = `<p class="empty">No scores yet. Finish all five dives to post the first one.</p>`; return; }
   el.innerHTML = `<div style="overflow-x:auto"><table class="lb"><thead><tr><th>#</th><th>Diver</th><th class="num">Items</th><th class="num">Score</th></tr></thead><tbody>${entries.map((e, i) => `<tr class="${e.id && e.id === data.me ? "me" : ""}"><td>${i + 1}</td><td>${esc(e.name)}${e.calm ? '<span class="tag">Calm</span>' : ""}</td><td class="num">${e.items}/${e.max || TOTAL_ITEMS}</td><td class="num">${Number(e.score).toLocaleString()}</td></tr>`).join("")}</tbody></table></div>`;
 }
 
@@ -1061,7 +1598,6 @@ $("#lensGo").onclick = scanLabel;
 function offlineScan(text) {
   const hits = [];
   for (const [re, name, why] of LENS_DICT) if (re.test(text) && !hits.some(h => h.name === name)) hits.push({ name, why });
-  // remove generic "Polyethylene" if PET matched only via terephthalate
   return hits;
 }
 async function scanLabel() {
@@ -1079,7 +1615,9 @@ Return JSON only: {"product": string (best guess, short), "verdict": "contains" 
 If the image is unreadable or not a label, use verdict "unclear" and say so in product.` });
       const raw = await AI.generate({ contents: [{ role: "user", parts }], json: true, temperature: 0.2 });
       const j = JSON.parse(raw.replace(/^```json|```$/g, "").trim());
-      renderLens({ product: j.product, verdict: j.verdict, hits: (j.ingredients || []).map(x => ({ name: x.name, why: x.why })), disposal: j.disposal, swap: j.swap, source: "Gemini" });
+      const str = (v, n) => typeof v === "string" ? v.slice(0, n) : "";
+      const hits = (Array.isArray(j.ingredients) ? j.ingredients : []).filter(x => x && typeof x.name === "string" && x.name.trim()).slice(0, 12).map(x => ({ name: str(x.name, 60), why: str(x.why, 140) }));
+      renderLens({ product: str(j.product, 60) || "Your product", verdict: ["contains", "likely_free", "unclear"].includes(j.verdict) ? j.verdict : "unclear", hits, disposal: str(j.disposal, 400), swap: str(j.swap, 200), source: "Gemini" });
     } catch (e) {
       if (text) renderLens({ ...fromOffline(text), note: `Gemini couldn't finish (${e.message}), so the built-in scanner checked your text.` });
       else out.innerHTML = `<p class="feedback bad">Gemini couldn't read the photo: ${esc(e.message)}. Paste the ingredients as text and try again.</p>`;
@@ -1094,18 +1632,35 @@ function fromOffline(text) {
   return { product: "Your product", verdict: hits.length ? "contains" : "likely_free", hits, disposal: hits.length ? "Use it up rather than rinsing it away, keep the container closed and put it in the trash, and check your local rules for recycling the empty package." : "No known plastic ingredients matched. Recycle the empty package if your town accepts it.", swap: hits.length ? "Look for 'microplastic-free' labels or natural exfoliants and fibers." : "Keep reading labels!", source: "Built-in scanner" };
 }
 function renderLens(r) {
-  const v = r.verdict === "contains" ? ["contains", "Contains plastic ingredients"] : r.verdict === "likely_free" ? ["free", "No plastic ingredients found"] : ["unclear", "Unclear — check the label again"];
+  const v = r.verdict === "contains" ? ["contains", icon("warning-diamond", "red"), "Plastic found!"] : r.verdict === "likely_free" ? ["free", icon("check", "kelp"), "No plastic found"] : ["unclear", icon("circle-question"), "Hard to tell. Try a clearer photo."];
   $("#lensOut").innerHTML = `
-    <div class="lesson-card">
-      <span class="ai-tag">${esc(r.source)}</span>
-      <div class="verdict ${v[0]}">${v[1]}</div>
-      <div class="muted">${esc(r.product || "")}</div>
-      ${r.hits.length ? `<div class="chips">${r.hits.map(h => `<span class="chip plastic" title="${esc(h.why || "")}">${esc(h.name)}</span>`).join("")}</div><ul class="dispose">${r.hits.map(h => `<li><b>${esc(h.name)}:</b> ${esc(h.why || "")}</li>`).join("")}</ul>` : ""}
-      <p><b>Disposal:</b> ${esc(r.disposal || "")}</p>
-      <p><b>Swap:</b> ${esc(r.swap || "")}</p>
+    <div class="lens-result">
+      <div class="dlg-head">
+        <div class="hero-art" aria-hidden="true">${v[1]}</div>
+        <div class="verdict ${v[0]}">${v[2]}</div>
+        <div class="muted">${esc(r.product || "")}</div>
+      </div>
+      ${r.hits.length ? `<div class="inside"><span class="section-label">◆ Plastic ingredients</span><div class="chips">${r.hits.map(h => `<span class="chip plastic" title="${esc(h.why || "")}">${esc(h.name)}</span>`).join("")}</div></div>
+      <ul class="dispose">${r.hits.map(h => `<li><b>${esc(h.name)}:</b> ${esc(h.why || "")}</li>`).join("")}</ul>` : ""}
+      <div class="tiles">
+        <div class="tile c-sky"><div class="ico" aria-hidden="true">${icon("trash")}</div><h3>Getting rid of it</h3><p>${esc(r.disposal || "")}</p></div>
+        <div class="tile c-kelp"><div class="ico" aria-hidden="true">${icon("lightbulb")}</div><h3>Try instead</h3><p>${esc(r.swap || "")}</p></div>
+      </div>
       ${r.note ? `<p class="muted">${esc(r.note)}</p>` : ""}
+      ${r.verdict === "contains" && r.hits.length ? `<div class="row center">${shelfRoom() > 0
+        ? `<button class="btn gold" type="button" id="lensAdd">${sprite("bottle", "xs")} Drop it in the tank (+200 bonus)</button>`
+        : `<p class="muted">The tank already has ${SHELF_MAX} My Shelf bonuses this game. Start a new game to add more.</p>`}</div>` : ""}
+      <span class="ai-tag">Checked by: ${esc(r.source)}</span>
     </div>`;
-  announce(`${v[1]}. ${r.hits.map(h => h.name).join(", ")}`);
+  const add = $("#lensAdd");
+  if (add) add.onclick = () => {
+    addToShelf(r);
+    add.disabled = true; add.innerHTML = `${icon("check")} It's floating in the tank! Catch it in any dive.`;
+    announce("Your product is now a bonus item in the tank. Catch it in any dive for 200 points.");
+    react("shelf");
+  };
+  announce(`${v[2]} ${r.hits.map(h => h.name).join(", ")}`);
+  tour("lens");
 }
 
 /* =====================================================================
@@ -1116,9 +1671,11 @@ function fitCanvas() {
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
-const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+// The chute's recycle sign: the same pixel icon as the UI, baked into an image for the canvas.
+const chuteIcon = new Image();
+chuteIcon.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${ICONS.recycle[0]} ${ICONS.recycle[1]}" color="#ffd166" fill="#ffd166">${ICONS.recycle[2]}</svg>`);
 
-function drawScene(now, dt) {
+function drawScene(now, dt, gdt) {
   const c = clarity(), still = settings.motion, hc = settings.contrast, t = now / 1000;
   // water
   const g = ctx.createLinearGradient(0, 0, 0, H);
@@ -1167,7 +1724,14 @@ function drawScene(now, dt) {
   ctx.fillStyle = "rgba(10,20,30,.55)"; ctx.fillRect(8, 300, 96, H - 300);
   ctx.strokeStyle = "#ffd166"; ctx.lineWidth = 3; ctx.setLineDash([10, 8]); ctx.strokeRect(8, 300, 96, H - 300); ctx.setLineDash([]);
   ctx.fillStyle = "#ffd166"; ctx.font = '14px "Bungee", sans-serif'; ctx.textAlign = "center"; ctx.fillText("RESCUE", 56, 326); ctx.fillText("CHUTE", 56, 344);
-  ctx.font = `28px ${EMOJI_FONT}`; ctx.fillText("♻️", 56, 390);
+  if (chuteIcon.complete) { ctx.imageSmoothingEnabled = false; ctx.drawImage(chuteIcon, 38, 360, 36, 36); }
+  // rescue counter
+  ctx.fillStyle = "#ffd166"; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+  ctx.font = '44px "VT323", monospace'; ctx.fillText(String(rescuedCount()), 56, 446);
+  ctx.font = '18px "VT323", monospace'; ctx.fillStyle = "rgba(255,209,102,.75)"; ctx.fillText(`OF ${TOTAL_ITEMS}`, 56, 466);
+
+  // sea friends who came back
+  drawFriends(t, gdt, still);
 
   // specks (microplastics) — fewer as ocean cleans
   const nSpeck = Math.floor(game.specks.length * (1 - c * 0.9));
@@ -1181,7 +1745,7 @@ function drawScene(now, dt) {
   // scan sweep
   const R = game.round;
   if (game.phase === "scan" && R) {
-    R.scanX += dt * 820;
+    R.scanX += gdt * 820;
     for (const it of game.items) if (isTarget(it) && it.lit === 0 && R.scanX > it.x) { it.lit = 0.001; sfx.scan(); }
     const sg = ctx.createLinearGradient(R.scanX - 60, 0, R.scanX, 0);
     sg.addColorStop(0, "rgba(255,209,102,0)"); sg.addColorStop(1, "rgba(255,209,102,.45)");
@@ -1194,10 +1758,12 @@ function drawScene(now, dt) {
   const sorted = game.items.slice().sort((a, b) => a.row - b.row);
   for (const it of sorted) {
     if (it.state === "gone") continue;
-    if (it.state === "falling") { it.vy += 900 * dt; it.y += it.vy * dt; if (it.y >= it.homeY) { it.y = it.homeY; it.x = it.homeX; it.vy = 0; it.state = "rest"; } }
+    if (it.state === "falling") { it.vy += 900 * gdt; it.y += it.vy * gdt; if (it.y >= it.homeY) { it.y = it.homeY; it.x = it.homeX; it.vy = 0; it.state = "rest"; } }
     if (it.state === "rest" && !still) it.y = it.homeY + Math.sin(t * 1.4 + it.phase) * 2.5;
     if (it.state === "rest" && it.x !== it.homeX) it.x = it.homeX;
+    if (it.mine && it.state === "rest") it.y = it.homeY + (still ? 0 : Math.sin(t * 1.1 + it.phase) * 8);   // floats mid-water
     const target = roundOn && isTarget(it);
+    if (target && it.mine && it.lit === 0) it.lit = 0.001;   // bonus items light up even if added after the sonar sweep
     if (target && it.lit > 0 && it.lit < 1) it.lit = Math.min(1, it.lit + dt * 3);
     if (!target) it.lit = 0;
     ctx.save();
@@ -1206,17 +1772,19 @@ function drawScene(now, dt) {
       const pulse = still ? 0.8 : 0.65 + Math.sin(t * 4 + it.phase) * 0.25;
       const rad = it.r * 2.1;
       const gg = ctx.createRadialGradient(it.x, it.y, it.r * 0.3, it.x, it.y, rad);
-      gg.addColorStop(0, `rgba(255,209,102,${0.55 * pulse * it.lit})`); gg.addColorStop(1, "rgba(255,209,102,0)");
+      const glow = it.mine ? "242,159,207" : "255,209,102";   // My Shelf bonus items glow pink
+      gg.addColorStop(0, `rgba(${glow},${0.55 * pulse * it.lit})`); gg.addColorStop(1, `rgba(${glow},0)`);
       ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(it.x, it.y, rad, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = `rgba(255,209,102,${0.9 * it.lit})`; ctx.lineWidth = hc ? 4 : 2.5;
+      ctx.strokeStyle = `rgba(${glow},${0.9 * it.lit})`; ctx.lineWidth = hc ? 4 : 2.5;
       ctx.beginPath(); ctx.arc(it.x, it.y, it.r + 6, 0, Math.PI * 2); ctx.stroke();
       // diamond marker (shape cue, not just colour)
       const my = it.y - it.r - 18 + (still ? 0 : Math.sin(t * 3 + it.phase) * 2);
       ctx.fillStyle = "#ffd166"; ctx.beginPath(); ctx.moveTo(it.x, my - 7); ctx.lineTo(it.x + 6, my); ctx.lineTo(it.x, my + 7); ctx.lineTo(it.x - 6, my); ctx.closePath(); ctx.fill();
       ctx.strokeStyle = "#2b1d00"; ctx.lineWidth = 1.5; ctx.stroke();
     }
-    ctx.font = `${Math.round(it.r * 1.55)}px ${EMOJI_FONT}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText(it.emoji, it.x, it.y + 2);
+    const sz = it.mine ? 52 : it.row ? 56 : 48;   // 3.5× and 3× the 16px sprite: whole-pixel steps on 2× screens keep it crisp
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(spriteCanvas(it.spr), Math.round(it.x - sz / 2), Math.round(it.y - sz / 2 + 2), sz, sz);
     ctx.restore();
   }
 
@@ -1236,10 +1804,10 @@ function drawScene(now, dt) {
     if (game.calm) { ctx.strokeStyle = "rgba(255,255,255,.35)"; ctx.setLineDash([4, 6]); ctx.beginPath(); ctx.moveTo(game.claw.x, game.claw.y + 30); ctx.lineTo(game.claw.x, SAND_Y + 40); ctx.stroke(); ctx.setLineDash([]); }
     if (under) {
       const label = under.name + (isTarget(under) ? "  ◆" : "");
-      ctx.font = '700 15px "Atkinson Hyperlegible", sans-serif';
-      const w = ctx.measureText(label).width + 20, lx = clamp(under.x, w / 2 + 6, W - w / 2 - 6), ly = under.y + under.r + 22;
-      ctx.fillStyle = "rgba(6,19,32,.88)"; roundRect(lx - w / 2, ly - 13, w, 26, 13); ctx.fill();
-      ctx.fillStyle = isTarget(under) ? "#ffd166" : "#e9f5f2"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(label, lx, ly + 1);
+      ctx.font = settings.easy ? '700 16px "Atkinson Hyperlegible", sans-serif' : '18px "Clawcean Body", sans-serif';
+      const w = ctx.measureText(label).width + 20, lx = clamp(under.x, w / 2 + 6, W - w / 2 - 6), ly = under.y - under.r - 44;
+      ctx.fillStyle = "rgba(21,11,28,.88)"; roundRect(lx - w / 2, ly - 13, w, 26, 13); ctx.fill();
+      ctx.fillStyle = isTarget(under) ? "#ffd166" : "#fbeff3"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(label, lx, ly + 1);
     }
   }
   // floating score fx
@@ -1247,6 +1815,30 @@ function drawScene(now, dt) {
   ctx.globalAlpha = 1; game.fx = game.fx.filter(f => f.t < 1.4);
   // murk overlay
   if (!hc) { ctx.fillStyle = `rgba(70,60,30,${0.22 * (1 - c)})`; ctx.fillRect(0, 0, W, H); }
+}
+function drawFriends(t, gdt, still) {
+  ctx.imageSmoothingEnabled = false;
+  game.visitors.forEach((f, i) => {
+    f.t += gdt;
+    let x, y = f.y, flip = false, sz = 48;
+    if (still) {   // reduced motion: everyone just sits in place
+      x = f.kind === "grow" ? f.x : 220 + i * 150;
+    } else if (f.kind === "swim" || f.kind === "walk") {
+      f.x += f.v * f.dir * gdt;
+      if (f.x > W - 140) f.dir = -1; else if (f.x < 160) f.dir = 1;   // patrol back and forth
+      x = f.x; flip = f.dir < 0;
+      y = f.kind === "swim" ? f.y + Math.sin(f.t * 1.6) * 10 : f.y - Math.abs(Math.sin(f.t * 6)) * 3;
+    } else if (f.kind === "drift") {
+      f.x += Math.sin(f.t * 0.3) * 20 * gdt; x = f.x; y = f.y + Math.sin(f.t * 0.9) * 18;   // drifts gently
+    } else {   // coral grows up out of the sand
+      f.grow = Math.min(1, f.grow + gdt * 0.8); x = f.x; sz = Math.round(48 * f.grow);
+    }
+    if (sz < 2) return;
+    ctx.save(); ctx.translate(Math.round(x), Math.round(y));
+    if (flip) ctx.scale(-1, 1);
+    ctx.drawImage(spriteCanvas(f.spr), -sz / 2, -sz / 2, sz, sz);
+    ctx.restore();
+  });
 }
 function roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
 
@@ -1299,6 +1891,7 @@ function update(dt, now) {
     if (under !== lastAnnounceItem) { lastAnnounceItem = under; if (under) announce(`Above ${under.name}${isTarget(under) ? ", lit target" : ", not lit"}.`); }
     if (!game.calm) {
       game.timer -= dt;
+      if (!game.hurried && game.timer <= 5) { game.hurried = true; react("hurry"); }
       if (game.timer <= 0) { game.timer = 0; showBanner("Time's up! Dropping…", "info", 1200); drop(); }
     }
     if (Math.floor(game.timer * 10) % 5 === 0) updateHUD();
@@ -1339,14 +1932,15 @@ function update(dt, now) {
       c.x = Math.max(CHUTE_X, c.x - 300 * dt); c.y = Math.max(REST_Y, c.y - 300 * dt); c.open = 1;
       break;
   }
-  for (const it of game.items) if (it.state === "chute") { it.vy += 900 * dt; it.y += it.vy * dt; if (it.y > H + 40) it.state = "gone-anim"; }
+  for (const it of game.items) if (it.state === "chute") { it.vy += 900 * dt; it.y += it.vy * dt; }
 }
-// treat items mid-chute-fall as visible; once off screen they're removed via onCaught's state
 let lastT = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
-  update(dt, now);
-  drawScene(now, dt);
+  // Any open popup (guide chat, Label Lens, a card…) pauses the timer, claw and sonar.
+  const paused = !!document.querySelector("dialog[open]");
+  if (!paused) update(dt, now);
+  drawScene(now, dt, paused ? 0 : dt);
   updateBanner(now);
   requestAnimationFrame(frame);
 }
@@ -1384,45 +1978,113 @@ function holdBtn(btn, k) {
   btn.addEventListener("keyup", e => { if (e.key === "Enter" || e.key === " ") keys[k] = false; });
 }
 holdBtn($("#leftBtn"), "left"); holdBtn($("#rightBtn"), "right");
-$("#dropBtn").onclick = drop;
 cv.addEventListener("pointerdown", e => {
   if (!game.calm || game.phase !== "aim") return;
   const rect = cv.getBoundingClientRect();
   game.claw.goalX = clamp(((e.clientX - rect.left) / rect.width) * W, MIN_X, MAX_X);
 });
 
-/* chat */
+/* ---------- Coral chat ---------- */
+function openCoral(q) {
+  Voice.stop();
+  openDlg("#coralDlg");
+  if (q) chatAsk(q); else $("#chatInput").focus();
+}
 $("#chatForm").addEventListener("submit", async e => {
   e.preventDefault();
   const inp = $("#chatInput"), q = inp.value.trim(); if (!q) return;
   inp.value = ""; await chatAsk(q);
 });
-$("#suggest").addEventListener("click", e => { const b = e.target.closest("button"); if (b) chatAsk(b.textContent); });
+$("#suggest").addEventListener("click", e => { const b = e.target.closest("button"); if (b) openCoral(b.textContent); });
+$("#coralSuggest").addEventListener("click", e => { const b = e.target.closest("button"); if (b) chatAsk(b.textContent); });
+let chatBusy = false;
 async function chatAsk(q) {
+  if (chatBusy) return;
+  chatBusy = true; $("#chatForm button").disabled = true;
   const logEl = $("#chatLog");
   logEl.insertAdjacentHTML("beforeend", `<div class="msg user">${esc(q)}</div>`);
-  const pending = document.createElement("div"); pending.className = "msg bot"; pending.innerHTML = `<span class="spinner"></span> Coral is thinking…`; logEl.appendChild(pending);
+  const pending = document.createElement("div"); pending.className = "msg bot"; pending.innerHTML = `<span class="spinner"></span> ${esc(guide().name)} is thinking…`; logEl.appendChild(pending);
   logEl.scrollTop = logEl.scrollHeight;
+  tour("coral");
   let ans;
-  if (AI.on) { try { ans = await AI.ask(q); } catch (err) { ans = offlineAnswer(q) + `\n\n*(Gemini error: ${err.message})*`; } }
-  else ans = offlineAnswer(q);
+  try {
+    if (AI.on) { try { ans = await AI.ask(q); } catch (err) { ans = offlineAnswer(q) + `\n\n*(Gemini error: ${err.message})*`; } }
+    else ans = offlineAnswer(q);
+  } finally { chatBusy = false; $("#chatForm button").disabled = false; }
   pending.innerHTML = md(ans);
   logEl.scrollTop = logEl.scrollHeight;
+  const plain = ans.replace(/\*\(Gemini error.*$/s, "").replace(/[*#]/g, "").replace(/\s+/g, " ").trim();
+  $("#coralLast").textContent = plain;
+  if ($("#coralDlg").open) speak(plain);
 }
+$("#coralBtn").onclick = () => openCoral();
+$("#dropBtn").onclick = () => { if (game.finished && !document.querySelector("dialog[open]")) openWelcome(); else drop(); };
+$("#coralOpen").onclick = () => openCoral();
 $("#catchLog").addEventListener("click", e => { const b = e.target.closest("button[data-item]"); if (!b) return; const it = game.items.find(x => x.id === b.dataset.item); if (it) showCatch(it, 0); });
 
-/* dialogs */
+/* ---------- demo checklist ---------- */
+const TOUR = [
+  ["lesson", "book-open", "Read a lesson"], ["quiz", "check", "Answer the quick check"], ["grab", "recycle", "Rescue an item"],
+  ["tips", "sparkles", "Get Gemini tips for your town"], ["coral", "message", "Chat with your ocean guide"], ["voice", "volume-2", "Hear your guide's voice"], ["lens", "search", "Scan a label"],
+  ["board", "trophy", "See the leaderboard"], ["settings", "settings-cog", "Try a comfort setting"]
+];
+const tourDone = new Set();
+const TOUR_ACTIONS = {
+  tips: () => { const it = game.items.find(x => x.id === game.log[game.log.length - 1]); if (it) { showCatch(it, 0); localTips(it); } },
+  coral: () => openCoral(),
+  voice: () => speak(guide().hello, true),
+  lens: () => { if (!$("#lensText").value) $("#lensSample").click(); openDlg("#lensDlg"); },
+  board: () => openBoard(),
+  settings: () => openSettings()
+};
+function tour(key) {
+  if (!game.demo || tourDone.has(key)) return;
+  tourDone.add(key); renderTours();
+  announce(`Demo checklist: ${TOUR.find(t => t[0] === key)[2]} done.`);
+}
+function renderTours() {
+  const html = TOUR.map(([k, ic, label]) => {
+    const done = tourDone.has(k), canTry = !done && TOUR_ACTIONS[k] && (k !== "tips" || game.log.length);
+    return `<li class="${done ? "done" : ""}">${icon(ic)}<span>${label}</span>${canTry ? `<button type="button" class="btn mini" data-tour="${k}">Try it</button>` : `<span class="chk">${done ? "✓" : "·"}<span class="sr-only">${done ? " done" : " not yet"}</span></span>`}</li>`;
+  }).join("");
+  const count = `${tourDone.size}/${TOUR.length}`;
+  $("#tourList").innerHTML = html; $("#tourCount").textContent = count;
+  if ($("#demoTour")) { $("#demoTour").innerHTML = html; $("#demoCount").textContent = count; }
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-tour]"); if (b) TOUR_ACTIONS[b.dataset.tour](); });
+
+/* ---------- dialogs ---------- */
 document.querySelectorAll("dialog").forEach(d => {
   d.addEventListener("click", e => { if (e.target.matches("[data-close]")) d.close(); });
+  d.addEventListener("close", () => { if (Captions.isOpen()) Captions.place(); });
   d.addEventListener("cancel", e => { if (["welcomeDlg", "lessonDlg", "summaryDlg"].includes(d.id)) e.preventDefault(); });
 });
-$("#catchDlg").addEventListener("close", () => { if ("speechSynthesis" in window) speechSynthesis.cancel(); if (game.phase === "catch") afterCatch(); });
+// Tool popups sit on top of the game. Game popups that come up while one is open wait until it closes,
+// so a round summary never covers a guide's answer or a label scan.
+const TOOL_DLGS = ["coralDlg", "lensDlg", "lbDlg", "settingsDlg"];
+let heldPopups = [];
+const toolOpen = () => TOOL_DLGS.some(id => document.getElementById(id).open);
+function gameShow(fn) { if (toolOpen()) heldPopups.push(fn); else fn(); }
+TOOL_DLGS.forEach(id => document.getElementById(id).addEventListener("close", () => {
+  if (toolOpen()) return;
+  const q = heldPopups; heldPopups = []; q.forEach(fn => fn());
+  // Put focus back on the tank so Space drops the claw instead of re-pressing the button that opened the popup.
+  if (game.phase === "aim" && !document.querySelector("dialog[open]")) { showBanner("Back to the game!", "info", 1400, "play"); $("#tank").focus({ preventScroll: true }); }
+}));
+$("#coralDlg").addEventListener("close", () => { if (Voice.active && !Voice.reacting) Voice.stop(); });
+$("#catchDlg").addEventListener("close", () => { Voice.stop(); if (game.phase === "catch") afterCatch(); });
 $("#lensBtn").onclick = () => openDlg("#lensDlg");
-$("#lbBtn").onclick = async () => { const entries = await Leaderboard.load(); $("#lbScope").textContent = `Top scores on ${Leaderboard.scopeLabel()}. Max is ${TOTAL_ITEMS} items.`; renderLb($("#lbTable"), { entries }); openDlg("#lbDlg"); };
+async function openBoard() {
+  const entries = await Leaderboard.load();
+  $("#lbScope").textContent = `Top scores on ${Leaderboard.scopeLabel()}. 20 items is the max.`;
+  renderLb($("#lbTable"), { entries }); openDlg("#lbDlg"); tour("board");
+}
+$("#lbBtn").onclick = openBoard;
 function openSettings() {
   $("#setCalm").checked = settings.calm; $("#setSpeak").checked = settings.speak; $("#setSound").checked = settings.sound;
-  $("#setContrast").checked = settings.contrast; $("#setLarge").checked = settings.large; $("#setMotion").checked = settings.motion;
-  $("#setPlace").value = settings.place; $("#setKey").value = store.get("geminiKey", ""); $("#setModel").value = settings.model || AI.model;
+  $("#setContrast").checked = settings.contrast; $("#setLarge").checked = settings.large; $("#setEasy").checked = settings.easy;
+  $("#setReact").checked = settings.reactions; $("#setCaptions").checked = settings.captions; $("#setMotion").checked = settings.motion;
+  $("#setGuide").value = settings.guide; $("#setPlace").value = settings.place; $("#setKey").value = store.get("geminiKey", ""); $("#setModel").value = settings.model || AI.model;
   $("#setCalm").disabled = game.phase !== "title" && !game.finished;
   openDlg("#settingsDlg");
 }
@@ -1430,16 +2092,20 @@ $("#settingsBtn").onclick = openSettings;
 $("#welcomeSettings").onclick = openSettings;
 $("#settingsSave").onclick = () => {
   if (!$("#setCalm").disabled) settings.calm = $("#setCalm").checked;
-  Object.assign(settings, { speak: $("#setSpeak").checked, sound: $("#setSound").checked, contrast: $("#setContrast").checked, large: $("#setLarge").checked, motion: $("#setMotion").checked, place: $("#setPlace").value.trim().slice(0, 60), model: $("#setModel").value.trim() });
+  Object.assign(settings, { speak: $("#setSpeak").checked, sound: $("#setSound").checked, contrast: $("#setContrast").checked, large: $("#setLarge").checked, easy: $("#setEasy").checked, reactions: $("#setReact").checked, captions: $("#setCaptions").checked, motion: $("#setMotion").checked, place: $("#setPlace").value.trim().slice(0, 60), model: $("#setModel").value.trim() });
   store.set("geminiKey", $("#setKey").value.trim());
   $("#optCalm").checked = settings.calm; $("#optSpeak").checked = settings.speak;
-  applySettings(); AI.init(); closeDlg("#settingsDlg");
+  setGuide($("#setGuide").value); renderGuidePickers();
+  applySettings(); AI.init(); closeDlg("#settingsDlg"); tour("settings");
 };
 $("#resetBtn").onclick = () => { closeDlg("#settingsDlg"); document.querySelectorAll("dialog[open]").forEach(d => d.close()); openWelcome(); };
 $("#welcomeForm").addEventListener("submit", e => { e.preventDefault(); startGame(); });
+$("#demoBtn").onclick = () => startGame(true);
 
 function openWelcome() {
-  game.phase = "title"; game.round = null; game.finished = false; game.score = 0; game.log = [];
+  game.phase = "title"; game.round = null; game.finished = false; game.score = 0; game.log = []; game.demo = false;
+  game.run++; heldPopups = []; game.visitors = [];
+  Voice.stop();
   setupItems(); updatePanel();
   $("#playerName").value = store.get("player", "");
   $("#optCalm").checked = settings.calm; $("#optSpeak").checked = settings.speak;
@@ -1448,9 +2114,14 @@ function openWelcome() {
 }
 
 /* boot */
-applySettings(); fitCanvas(); initWorld(); setupItems(); updatePanel();
+document.querySelectorAll("i[data-ic]").forEach(el => { el.outerHTML = icon(el.dataset.ic, el.className); });
+document.querySelectorAll("i[data-spr]").forEach(el => { el.outerHTML = sprite(el.dataset.spr, el.className); });
+$("#welcomeCast").innerHTML = GUIDES.map(g => sprite(g.spr, "lg")).join("");
+Captions.init();
+applySettings(); renderGuidePickers(); applyGuide(); fitCanvas(); initWorld(); setupItems(); updatePanel();
 AI.init();
 requestAnimationFrame(frame);
 openWelcome();
+if (new URLSearchParams(location.search).has("demo")) startGame(true);   // share ?demo to jump straight into the demo
 window.__clawcean = { game, MODULES, drop, AI };
 </script>
