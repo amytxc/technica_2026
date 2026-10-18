@@ -188,7 +188,8 @@ body.manual-paused .manual-pause-overlay #overlayResumeBtn { min-height: 48px; f
 /* the keyboard hint needs room; on a narrow cabinet the tank banner already teaches the keys at the start of each round */
 .cabinet { container-type: inline-size; }
 @container (max-width: 820px) { .keys { display: none; } }
-.keys + .machine { margin-left: 0; }
+/* Pause and Restart sit flush with the right edge of the control row; the hint, when shown, sits just before them */
+.machine { order: 2; }
 .btn.icon { width: 44px; padding: 0; justify-content: center; }
 /* the chosen guide's pixel portrait inside the Ask button (Coral by default) */
 .btn-av { line-height: 0; margin: -4px 0; } .btn-av .spr { width: 28px; height: 28px; }
