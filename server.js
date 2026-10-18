@@ -67,8 +67,30 @@ function allowed(ip, max = 30, windowMs = 60_000) {
 }
 
 // --- leaderboard storage ---
+// Hosted (Vercel and other serverless hosts): Upstash Redis over its REST API, because those file systems are read-only
+// and every server copy has its own disk. Vercel's Upstash integration sets KV_REST_API_* ; Upstash's own uses UPSTASH_REDIS_REST_*.
+// Local / single server: a JSON file in DATA_DIR.
+const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || "";
+const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || "";
+const LB_KEY = "clawcean:leaderboard";
+async function kv(...cmd) {
+  const r = await fetch(KV_URL, { method: "POST", headers: { authorization: `Bearer ${KV_TOKEN}`, "content-type": "application/json" }, body: JSON.stringify(cmd), signal: AbortSignal.timeout(5000) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || j.error) throw new Error(j.error || `Upstash returned ${r.status}`);
+  return j.result;
+}
 function loadLb() { try { return JSON.parse(fs.readFileSync(LB_FILE, "utf8")); } catch { return []; } }
 function saveLb(list) { fs.mkdirSync(DATA, { recursive: true }); fs.writeFileSync(LB_FILE, JSON.stringify(list, null, 2)); }
+const Board = KV_URL && KV_TOKEN ? {
+  kind: "upstash",
+  // A sorted set ranked by score, then items: each add is one atomic command, so simultaneous finishes can't overwrite each other.
+  async top(n) { return (await kv("ZREVRANGE", LB_KEY, 0, n - 1)).map(row => JSON.parse(row)); },
+  async add(e) { await kv("ZADD", LB_KEY, e.score * 100 + e.items, JSON.stringify(e)); await kv("ZREMRANGEBYRANK", LB_KEY, 0, -201); }
+} : {
+  kind: "file",
+  async top(n) { return loadLb().slice(0, n); },
+  async add(e) { const list = loadLb(); list.push(e); list.sort((a, b) => b.score - a.score || b.items - a.items); saveLb(list.slice(0, 200)); }
+};
 const clean = s => String(s || "").replace(/[<>\u0000-\u001f]/g, "").trim().slice(0, 20) || "Anonymous diver";
 
 async function handleGemini(req, res) {
@@ -146,7 +168,10 @@ async function handleTts(req, res) {
 }
 
 async function handleLeaderboard(req, res) {
-  if (req.method === "GET") return send(res, 200, { entries: loadLb().slice(0, 50) });
+  if (req.method === "GET") {
+    try { return send(res, 200, { entries: await Board.top(50) }); }
+    catch (e) { console.error("Leaderboard read failed:", e.message); return send(res, 503, { error: "The leaderboard is unavailable right now." }); }
+  }
   if (req.method === "POST") {
     if (!allowed("lb:" + clientIp(req), 6)) return send(res, 429, { error: "Too many scores at once. Try again in a minute." });
     let b; try { b = await readBody(req, 4096); } catch { return send(res, 400, { error: "Invalid entry." }); }
@@ -157,10 +182,9 @@ async function handleLeaderboard(req, res) {
       items: Math.max(0, Math.min(20, Math.round(Number(b.items) || 0))),
       max: 20, calm: !!b.calm, date: new Date().toISOString().slice(0, 10)
     };
-    const list = loadLb(); list.push(entry);
-    list.sort((a, b2) => b2.score - a.score || b2.items - a.items);
-    saveLb(list.slice(0, 200));
-    return send(res, 200, { id: entry.id, entries: list.slice(0, 50) });
+    // Answer right away on failure (e.g. a read-only disk) so the game's results screen never waits on us.
+    try { await Board.add(entry); return send(res, 200, { id: entry.id, entries: await Board.top(50) }); }
+    catch (e) { console.error("Leaderboard save failed:", e.message); return send(res, 503, { error: "Couldn't save the score right now." }); }
   }
   send(res, 405, { error: "Method not allowed" });
 }
@@ -169,7 +193,7 @@ async function handleLeaderboard(req, res) {
 process.on("unhandledRejection", e => console.error("Request failed:", e));
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
-  if (url.pathname === "/api/health") return send(res, 200, { ok: true, gemini: !!KEY, model: MODEL, voices: !!EL_KEY });
+  if (url.pathname === "/api/health") return send(res, 200, { ok: true, gemini: !!KEY, model: MODEL, voices: !!EL_KEY, leaderboard: Board.kind });
   if (url.pathname === "/api/tts" && req.method === "POST") return handleTts(req, res);
   if (url.pathname === "/api/gemini" && req.method === "POST") return handleGemini(req, res);
   if (url.pathname === "/api/leaderboard") return handleLeaderboard(req, res);
@@ -196,5 +220,6 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`Clawcean running at http://localhost:${PORT}`);
   console.log(KEY ? `Gemini connected (model: ${MODEL})` : "Gemini key missing: the game runs in offline mode. Add GEMINI_API_KEY to .env.");
+  console.log(`Leaderboard: ${Board.kind === "upstash" ? "Upstash Redis" : "file at " + LB_FILE}`);
   console.log(EL_KEY ? `ElevenLabs voices on (model: ${EL_MODEL})` : "ElevenLabs key missing: read-aloud uses the browser's built-in voice. Add ELEVENLABS_API_KEY to .env.");
 });
