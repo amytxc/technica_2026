@@ -15,8 +15,10 @@
   --coral-ink: #2a0d07;
   --sodium: #ffd166;
   --kelp: #3ad6a5;
-  --danger: #ff5c7a;
+  --danger: #ff6fb5;   /* candy pink: reads as "uh-oh" without the alarm red, and sits apart from coral */
   --sky: #7fd8ff;
+  --sky-ink: #062033;
+  /* color jobs: gold = targets, plastic and rewards; sky = guide and info; coral = the cabinet and "press this"; kelp = success; pink = misses */
   --focus: #ffd166;
   --font-display: "Bungee", "Impact", "Arial Black", system-ui, sans-serif;
   --font-body: "Clawcean Body", "Atkinson Hyperlegible", "Verdana", system-ui, sans-serif;
@@ -68,7 +70,22 @@ button, input, textarea, select { font: inherit; color: inherit; }
 a { color: var(--sodium); }
 
 /* ---------- top bar ---------- */
-.topbar { max-width: 1240px; margin: 0 auto 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.topbar { position: relative; max-width: 1240px; margin: 0 auto 12px; display: flex; align-items: center; gap: 10px; }
+.more-tools { display: contents; }
+.topbar .menu-toggle { display: none; }
+/* laptop and tablet: the marquee is the sign, so the page title only exists for screen readers */
+@media (min-width: 641px) { .brand { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .ai-pill { margin-right: auto; } }
+/* phone: the brand replaces the marquee, and Label Lens / Leaderboard / Settings fold behind Menu */
+@media (max-width: 640px) {
+  .brand span { display: none; }
+  .brand { margin-right: auto; } .brand h1 { font-size: var(--step-1); }
+  .topbar .ai-pill { width: 24px; height: 24px; padding: 0; font-size: 0; overflow: hidden; }
+  .topbar .ai-pill::before { left: 8px; }
+  .topbar .menu-toggle { display: inline-flex; }
+  .more-tools { display: none; }
+  body.menu-open .more-tools { display: grid; gap: 6px; position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; min-width: 200px; padding: 8px; background: var(--deep); border: 3px solid var(--line); box-shadow: var(--hard); }
+  .marquee { display: none; }
+}
 .brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; }
 .brand h1 { font-family: var(--font-display); font-weight: 400; font-size: var(--step-2); margin: 0; letter-spacing: 0.02em; color: var(--sodium); text-shadow: 3px 3px 0 #7a2b00; }
 .brand span { color: var(--muted); font-size: var(--step--1); }
@@ -101,6 +118,14 @@ body.manual-paused .manual-pause-overlay #overlayResumeBtn { min-height: 48px; f
 /* ---------- main grid ---------- */
 .stage { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
 @media (max-width: 980px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+/* laptops: the cabinet column is sized from the window height, so the whole machine (DROP included) fits without scrolling.
+   The non-tank chrome (top bar, marquee, HUD, controls, padding) is about 320px, plus a little breathing room; the tank keeps its 16:9 shape. */
+@media (min-width: 981px) {
+  .stage { --cab-w: max(560px, calc((100vh - 330px) * 16 / 9 + 28px)); grid-template-columns: minmax(0, var(--cab-w)) 360px; justify-content: center; }
+  @supports (height: 100svh) { .stage { --cab-w: max(560px, calc((100svh - 330px) * 16 / 9 + 28px)); } }
+  .cabinet .marquee { padding: 4px 16px; margin-bottom: 10px; }
+  .cabinet .marquee .title { font-size: clamp(1.4rem, 2.4vw, 1.9rem); }
+}
 
 /* cabinet */
 .cabinet {
@@ -119,11 +144,17 @@ body.manual-paused .manual-pause-overlay #overlayResumeBtn { min-height: 48px; f
 }
 .marquee .title { font-family: var(--font-display); font-size: clamp(1.4rem, 4.4vw, 2.6rem); color: var(--sodium); line-height: 1; text-shadow: 3px 3px 0 #7a2b00; letter-spacing: .04em; }
 .marquee .sub { font-family: var(--font-mono); font-size: 0.72rem; color: #ffb4a6; letter-spacing: .08em; text-transform: uppercase; margin-top: 4px; }
-.hud { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+.hud { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
 .hud div { background: #1b0a0b; border-radius: var(--radius-sm); box-shadow: inset 2px 2px 0 #000; padding: 6px 10px; min-width: 0; }
 .hud small { display: block; font-size: 0.68rem; letter-spacing: .05em; text-transform: uppercase; color: #ffb4a6; }
 .hud b { font-family: var(--font-digits); font-size: 1.7rem; line-height: 1; color: #ffe9b0; font-variant-numeric: tabular-nums; white-space: nowrap; }
-@media (max-width: 560px) { .hud { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .hud { gap: 6px; } .hud div { padding: 5px 7px; } .hud b { font-size: 1.4rem; } }
+/* the timer is the one urgent number: larger, and it turns pink and blinks for the last 5 seconds */
+.hud .hud-timer b { font-size: 2rem; }
+@media (max-width: 560px) { .hud .hud-timer b { font-size: 1.6rem; } }
+.hud .hud-timer.low { background: #3a0f2a; box-shadow: inset 0 0 0 2px var(--danger); }
+.hud .hud-timer.low small, .hud .hud-timer.low b { color: var(--danger); }
+.hud .hud-timer.low b { animation: blink .5s steps(2) infinite; }
 .hud b.lives { display: flex; gap: 2px; align-items: center; min-height: 1.7rem; }
 .hud b.lives .ic { width: 22px; height: 22px; }
 .tank { position: relative; border-radius: var(--radius); overflow: hidden; background: #08263d; box-shadow: inset 0 0 0 4px #1b0a0b, inset 0 0 40px rgba(0,0,0,.5); }
@@ -137,8 +168,8 @@ body.manual-paused .manual-pause-overlay #overlayResumeBtn { min-height: 48px; f
   font-weight: 700; text-align: center; max-width: 90%; pointer-events: none; transition: opacity .3s;
 }
 .banner.good { border-color: var(--kelp); color: var(--kelp); }
-.banner.bad { border-color: var(--danger); color: #ffc2cd; }
-.banner.info { border-color: var(--sodium); color: var(--sodium); }
+.banner.bad { border-color: var(--danger); color: #ffd3ea; }
+.banner.info { border-color: var(--sky); color: var(--sky); }
 .controls { display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
 .joy { display: flex; gap: 8px; }
 .joy button, .drop {
@@ -153,7 +184,15 @@ body.manual-paused .manual-pause-overlay #overlayResumeBtn { min-height: 48px; f
 .drop[disabled], .joy button[disabled] { opacity: .5; cursor: not-allowed; }
 .keys { margin-left: auto; color: #ffe3dc; font-size: var(--step--1); }
 .keys kbd { font-family: var(--font-mono); background: #2a0f12; border-radius: 0; box-shadow: 0 2px 0 #000; padding: 1px 6px; font-size: 0.78rem; }
-@media (max-width: 560px) { .keys { display: none; } .drop { flex: 1; } }
+.machine { display: flex; gap: 8px; margin-left: auto; }
+/* the keyboard hint needs room; on a narrow cabinet the tank banner already teaches the keys at the start of each round */
+.cabinet { container-type: inline-size; }
+@container (max-width: 820px) { .keys { display: none; } }
+.keys + .machine { margin-left: 0; }
+.btn.icon { width: 44px; padding: 0; justify-content: center; }
+/* the chosen guide's pixel portrait inside the Ask button (Coral by default) */
+.btn-av { line-height: 0; margin: -4px 0; } .btn-av .spr { width: 28px; height: 28px; }
+@media (max-width: 560px) { .keys { display: none; } .drop { flex: 1; min-width: 0; padding: 0 16px; } .controls { gap: 8px; flex-wrap: nowrap; } .joy button { width: 52px; } }
 
 /* side panel */
 .panel { background: var(--deep); border: 3px solid var(--line); border-radius: var(--radius); box-shadow: var(--hard); padding: 16px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
@@ -166,7 +205,7 @@ body.manual-paused .manual-pause-overlay #overlayResumeBtn { min-height: 48px; f
 .progress { display: flex; gap: 4px; }
 .progress span { flex: 1; height: 8px; border-radius: 0; background: var(--panel-2); }
 .progress span.done { background: var(--kelp); }
-.progress span.now { background: var(--sodium); }
+.progress span.now { background: var(--sky); }
 .log { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 220px; overflow: auto; }
 .log li button { width: 100%; text-align: left; display: flex; gap: 10px; align-items: center; background: var(--panel); border: 2px solid var(--line); border-radius: var(--radius-sm); padding: 6px 10px; cursor: pointer; }
 .log li button:hover { background: var(--panel-2); }
@@ -198,7 +237,7 @@ dialog.wide { width: min(880px, calc(100vw - 24px)); }
 :root[data-contrast="high"] dialog { background: #000; border: 4px solid #fff; }
 dialog::backdrop { background: repeating-linear-gradient(0deg, rgba(12,5,16,.86) 0 2px, rgba(12,5,16,.74) 2px 4px); }
 .dlg { padding: 22px clamp(14px, 4vw, 28px) 24px; display: grid; gap: 16px; }
-.dlg h2 { font-family: var(--font-display); font-weight: 400; font-size: clamp(1.6rem, 5vw, 2.3rem); line-height: 1.05; margin: 0; text-wrap: balance; color: var(--sodium); text-shadow: 3px 3px 0 #7a2b00; letter-spacing: .02em; }
+.dlg h2 { font-family: var(--font-display); font-weight: 400; font-size: clamp(1.6rem, 5vw, 2.3rem); line-height: 1.05; margin: 0; text-wrap: balance; color: #fff1d6; text-shadow: 3px 3px 0 #c2412d; letter-spacing: .02em; }
 .dlg h3 { margin: 0; font-size: var(--step-1); }
 .dlg p { margin: 0; max-width: 62ch; }
 /* anything a player reads as sentences uses the readable face, a little larger with looser lines */
@@ -208,14 +247,14 @@ dialog::backdrop { background: repeating-linear-gradient(0deg, rgba(12,5,16,.86)
 .dlg-head { display: grid; gap: 8px; justify-items: center; text-align: center; }
 .dlg-head p { max-width: 50ch; font-size: 1.1rem; }
 /* the dive/context line is a ticket stub at the popup's top edge, not a pill label over the title */
-.dlg-head .eyebrow, .catch-head .eyebrow { background: var(--sodium); color: #2b1d00; padding: 4px 18px 5px; border-radius: 0; letter-spacing: .08em;
+.dlg-head .eyebrow, .catch-head .eyebrow { background: var(--sky); color: var(--sky-ink); padding: 4px 18px 5px; border-radius: 0; letter-spacing: .08em;
   clip-path: polygon(0 0, 100% 0, 100% 35%, calc(100% - 6px) 50%, 100% 65%, 100% 100%, 0 100%, 0 65%, 6px 50%, 0 35%); }
 .dlg-head > .eyebrow:first-child { margin-top: -22px; }
 .hero-art { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; justify-content: center; line-height: 1; filter: drop-shadow(0 4px 0 rgba(0,0,0,.35)); }
 .hero-art .spr.lg { width: clamp(44px, 13vw, 64px); height: clamp(44px, 13vw, 64px); }
 .dlg > * { min-width: 0; }   /* no single row (like the guide lineup) can stretch a popup wider than a phone */
 .hero-art .ic { width: 64px; height: 64px; color: var(--sodium); filter: drop-shadow(3px 3px 0 #7a2b00); }
-.hero-art .ic.red { color: var(--danger); filter: drop-shadow(3px 3px 0 #4a0f1c); }
+.hero-art .ic.red { color: var(--danger); filter: drop-shadow(3px 3px 0 #4a0f33); }
 .hero-art .ic.kelp { color: var(--kelp); filter: drop-shadow(3px 3px 0 #0b3a2c); }
 .dlg .btn { font-size: .95rem; }
 .dlg .btn.primary, .dlg .btn.gold { font-family: var(--font-display); font-weight: 400; letter-spacing: .03em; box-shadow: 4px 4px 0 #0b0510, inset 0 2px 0 rgba(255,255,255,.4); }
@@ -239,7 +278,7 @@ dialog::backdrop { background: repeating-linear-gradient(0deg, rgba(12,5,16,.86)
 #lessonBody .tiles { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
 #lessonBody .tile { text-align: left; }
 #lessonBody .tile .ico { place-items: center start; }
-.tile { --c: var(--sodium); background: var(--panel); border: 2px solid var(--line); border-top: 6px solid var(--c); border-radius: var(--radius-sm); padding: 14px; display: grid; gap: 6px; align-content: start; text-align: center; }
+.tile { --c: var(--sky); background: var(--panel); border: 2px solid var(--line); border-top: 6px solid var(--c); border-radius: var(--radius-sm); padding: 14px; display: grid; gap: 6px; align-content: start; text-align: center; }
 .tile .ico { height: 64px; display: grid; place-items: center; color: var(--c); }
 .tile .ico .ic { width: 48px; height: 48px; filter: drop-shadow(3px 3px 0 rgba(0,0,0,.5)); }
 .tile .ico .spr { width: 64px; height: 64px; }
@@ -247,8 +286,8 @@ dialog::backdrop { background: repeating-linear-gradient(0deg, rgba(12,5,16,.86)
 .tile p { margin: 0; font-size: 1.02rem; text-align: left; }
 #welcomeDlg .tile p { text-align: center; margin: 0 auto; }   /* one-liners stay centered under their icon */
 .tile .stat { font-family: var(--font-read); font-size: .9rem; text-align: left; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 6px; margin-top: 4px; }
-.tile.c-coral { --c: var(--coral); } .tile.c-kelp { --c: var(--kelp); } .tile.c-sky { --c: var(--sky); }
-.tile .dont { color: #ffc2cd; font-size: .95rem; }
+.tile.c-coral { --c: var(--coral); } .tile.c-danger { --c: var(--danger); } .tile.c-kelp { --c: var(--kelp); } .tile.c-sky { --c: var(--sky); }
+.tile .dont { color: #ffd3ea; font-size: .95rem; }
 /* stacked rows (catch card, Label Lens): icon on the left, heading and text on the right, read top to bottom */
 .tiles.stack { grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .tiles.stack .tile { grid-template-columns: 48px minmax(0, 1fr); column-gap: 14px; text-align: left; border-top-width: 2px; border-left: 6px solid var(--c); padding: 12px 14px; }
@@ -264,11 +303,11 @@ dialog::backdrop { background: repeating-linear-gradient(0deg, rgba(12,5,16,.86)
 .quiz { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
 .quiz button { display: flex; align-items: center; gap: 10px; text-align: left; background: var(--panel); border: 2px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; cursor: pointer; font-weight: 700; min-height: 52px; box-shadow: 0 4px 0 #0b0510; }
 .quiz button:active:not([disabled]) { transform: translateY(3px); box-shadow: 0 1px 0 #0b0510; }
-.quiz button:hover:not([disabled]) { background: var(--panel-2); border-color: var(--sodium); }
+.quiz button:hover:not([disabled]) { background: var(--panel-2); border-color: var(--sky); }
 .quiz button[disabled] { cursor: default; }
-.quiz .k { font-family: var(--font-display); font-weight: 400; background: var(--sodium); color: #2b1d00; width: 30px; height: 30px; border-radius: 0; display: grid; place-items: center; flex: none; }
+.quiz .k { font-family: var(--font-display); font-weight: 400; background: var(--sky); color: var(--sky-ink); width: 30px; height: 30px; border-radius: 0; display: grid; place-items: center; flex: none; }
 .quiz button.right { border-color: var(--kelp); background: rgba(58,214,165,.15); } .quiz button.right .k { background: var(--kelp); }
-.quiz button.wrong { border-color: var(--danger); background: rgba(255,92,122,.12); } .quiz button.wrong .k { background: var(--danger); }
+.quiz button.wrong { border-color: var(--danger); background: rgba(255,111,181,.12); } .quiz button.wrong .k { background: var(--danger); }
 .quiz button.right::after { content: "✓"; margin-left: auto; color: var(--kelp); font-size: 1.3rem; }
 .quiz button.wrong::after { content: "✕"; margin-left: auto; color: var(--danger); font-size: 1.3rem; }
 .feedback { border-left: 4px solid var(--kelp); padding: 8px 12px; background: var(--panel); border-radius: 0; }
@@ -335,27 +374,27 @@ table.lb tr.me td { color: var(--sodium); font-weight: 700; }
 .guides { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; }
 .guide { position: relative; display: grid; gap: 2px; justify-items: center; align-content: start; text-align: center; background: var(--panel); border: 2px solid var(--line); border-radius: var(--radius-sm); padding: 10px 8px; cursor: pointer; }
 .guide:hover { background: var(--panel-2); }
-.guide:has(input:checked) { border-color: var(--sodium); background: var(--panel-2); box-shadow: var(--hard); transform: translate(-2px, -2px); }
+.guide:has(input:checked) { border-color: var(--sky); background: var(--panel-2); box-shadow: var(--hard); transform: translate(-2px, -2px); }
 .guide:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
 .guide .em { line-height: 0; }
 .guide .em .spr { width: 56px; height: 56px; }
-.guide b { font-family: var(--font-display); font-weight: 400; font-size: .9rem; color: var(--sodium); }
+.guide b { font-family: var(--font-display); font-weight: 400; font-size: .9rem; color: var(--ink); }
 .guide small { color: var(--muted); font-size: .76rem; line-height: 1.3; }
 .guide .pr { font-family: var(--font-mono); font-size: .68rem; color: var(--kelp); }
 .guide .hear { margin-top: 4px; }
 
 /* guide captions: an RPG dialogue box. It's a popover so it can sit above open popups; it never takes clicks. */
 .caption { position: fixed; inset: auto; margin: 0; padding: 10px 16px 12px 10px; width: min(640px, calc(100vw - 24px));
-  border: 4px solid var(--sodium); border-radius: 0; background: rgba(21, 11, 28, .96); color: #fff8ec; pointer-events: none;
+  border: 4px solid var(--sky); border-radius: 0; background: rgba(21, 11, 28, .96); color: #fff8ec; pointer-events: none;
   box-shadow: 0 0 0 3px #2a0f12, 6px 6px 0 3px #0b0510; overflow: visible; }
 .caption:popover-open { display: flex; gap: 12px; align-items: center; }
 .caption.no-popover { display: none; z-index: 50; } .caption.no-popover.show { display: flex; gap: 12px; align-items: center; }
-.cap-face { width: 68px; height: 68px; flex: none; border: 3px solid var(--sodium); border-radius: 0; background: var(--abyss); display: grid; place-items: center; }
+.cap-face { width: 68px; height: 68px; flex: none; border: 3px solid var(--sky); border-radius: 0; background: var(--abyss); display: grid; place-items: center; }
 .cap-face .spr { width: 56px; height: 56px; }
 .cap-body { min-width: 0; flex: 1; }
-.cap-name { display: inline-block; font-family: var(--font-display); font-size: .78rem; letter-spacing: .04em; color: #2b1d00; background: var(--sodium); padding: 1px 10px; border-radius: 0; margin-bottom: 4px; }
+.cap-name { display: inline-block; font-family: var(--font-display); font-size: .78rem; letter-spacing: .04em; color: var(--sky-ink); background: var(--sky); padding: 1px 10px; border-radius: 0; margin-bottom: 4px; }
 .cap-text { margin: 0; font-family: var(--font-game); font-size: 1.02rem; line-height: 1.35; min-height: 2.7em; text-wrap: pretty; }
-.cap-more { position: absolute; right: 12px; bottom: 6px; color: var(--sodium); font-size: .8rem; animation: blink 1s steps(2) infinite; }
+.cap-more { position: absolute; right: 12px; bottom: 6px; color: var(--sky); font-size: .8rem; animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 :root[data-contrast="high"] .caption { background: #000; border-color: #fff; }
 /* small screens: a compact box that sits over the HUD instead of covering the short tank */
