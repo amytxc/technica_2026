@@ -32,7 +32,7 @@ Each guide has its own voice and delivery settings. Lessons and cards are read s
 All requests go through a small Node proxy, so the API keys never reach the browser. The proxy also whitelists fields, caps request size and rate-limits. Every Gemini feature has an offline fallback, so the demo never breaks.
 
 ## Accessibility & inclusion
-Calm mode (no timer, wider grip, tap-to-aim, jump-to-target), full keyboard play, screen-reader announcements, captions for everything the guide says, Auto-read and Read to me in the guide's voice, high contrast, larger text, an Easy-read font switch (Atkinson Hyperlegible), reduced motion, shape-coded targets for colorblind players and middle-school-level lessons. Guides show their pronouns, including a they/them guide. Calm-mode scores are tagged openly rather than hidden.
+Calm mode (no timer, wider grip, tap-to-aim, jump-to-target), pause any time (button or P), full keyboard play, screen-reader announcements, captions for everything the guide says, Auto-read and Read to me in the guide's voice, high contrast, larger text, an Easy-read font switch (Atkinson Hyperlegible), reduced motion, shape-coded targets for colorblind players and middle-school-level lessons. Guides show their pronouns, including a they/them guide. Calm-mode scores are tagged openly rather than hidden.
 
 ## How we built it
 Vanilla HTML/CSS/JS with a hand-drawn Canvas 2D renderer (claw state machine, sonar sweep, ocean "health" shading), 16×16 pixel sprites stored as run-length-encoded rows, Web Audio sound effects, ElevenLabs text-to-speech with a Web Speech fallback, and a dependency-free Node server for the Gemini and ElevenLabs proxies and the leaderboard.

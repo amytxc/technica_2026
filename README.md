@@ -1,7 +1,7 @@
 # Clawcean 🦀🌊
 
 **Learn about microplastics in common items. Clean the sea.**
-Clawcean is an arcade claw machine set in a polluted ocean. Five short lessons teach which everyday ingredients turn into ocean microplastics. After each lesson, the items in the tank made with those ingredients light up, and you grab as many as you can before you miss. Each rescued item opens a card that lists its plastic ingredients, explains how it harms the ocean, and shows how to throw it away safely. You pick an ocean guide (a pirate crab, a calm jellyfish, a 100-year-old turtle…). Gemini gives the guide its personality, and ElevenLabs gives it a voice.
+Clawcean is an arcade claw machine set in a polluted ocean. Five short lessons teach which common items turn into ocean microplastics. After each lesson, the claw scans the tank and lights up the items that contain those plastics, and you grab as many as you can before you run out of tries. Each rescued item opens a card that lists its plastic ingredients, explains how it harms the ocean, and shows how to throw it away safely. You pick an ocean guide (a pirate crab, a calm jellyfish, a 100-year-old turtle…). Gemini gives the guide its personality, and ElevenLabs gives it a voice.
 
 ## Run it
 
@@ -28,10 +28,10 @@ Without a key, the game still runs in **offline mode** with all its built-in con
 
 1. **Lesson**: one panel with 3 picture tiles, written for middle-school readers, plus a **Quick check** question. A right answer gives you +50 points and a ❤️ bonus try for that dive.
 2. **Sonar sweep**: the claw is "tuned" to that module's ingredients, and those items light up with a glow ring and a ◆ marker. The marker is a shape, so you don't need to see color to spot targets.
-3. **Grab**: move with ◀ ▶ or the arrow keys, then press DROP or Space. You have 20 s per turn. A grab off-center is more likely to slip. A grab on an unlit item always fails, because the claw isn't tuned to that material.
+3. **Grab**: move with ◀ ▶ or the arrow keys, then press DROP or Space. You have 20 s per turn. **Pause** (top bar, or `P`) freezes everything until you press Resume; **Restart** goes back to the start screen. A grab off-center is more likely to slip. A grab on an unlit item always fails, because the claw isn't tuned to that material.
 4. **Catch card**: shows the item's ingredients (◆ marks the plastic ones), why it harms the ocean, how to dispose of it safely, a better swap, and *"Tips for where I live"* from Gemini.
 5. Each dive starts with **1 try** (❤️ in the HUD), or 2 if you got the quick check right. A miss costs a try. Keep grabbing until you're out of tries or rescue every lit item. Clearing all of them earns a +150 bonus.
-6. After 5 modules: the final report, a **Gemini-written ocean pledge**, and the **leaderboard**.
+6. After 5 dives: the final report, a **Gemini-written ocean pledge**, and the **leaderboard**.
 
 **Scoring:** 100 per item + 25 × streak bonus · +150 perfect module · +50 per correct quick check.
 The tank holds **20 items**, 4 per module, so 20/20 is the maximum. The leaderboard ranks by score and shows items rescued out of 20.
@@ -65,11 +65,12 @@ All calls go through `server.js` → `/api/gemini`, which forwards only whitelis
 
 **Captions:** everything the guide says appears in an RPG-style dialogue box with the guide's portrait, name plate and typewriter text in the Bungee game font. It shows above popups (at the top of the screen) and mid-tank during play, and never blocks clicks. Easy-read swaps the caption font for Atkinson Hyperlegible.
 
-The guide reads lessons, catch cards, Gemini tips and chat answers aloud (turn on **Auto-read** to hear every card as it opens, or tap **🔊 Read to me** on any card). Audio is made through `/api/tts` on the server, so the key stays private, and repeated lines are cached so they cost no extra credits. If ElevenLabs isn't available, each guide still gets its own pitch and speed in the browser's voice.
+The guide reads lessons, catch cards, Gemini tips and chat answers aloud (turn on **Auto-read** to hear every card as it opens, or tap **Read to me** on any card). Audio is made through `/api/tts` on the server, so the key stays private, and repeated lines are cached so they cost no extra credits. If ElevenLabs isn't available, each guide still gets its own pitch and speed in the browser's voice.
 
 ## Accessibility & inclusion (Technica mission)
 
-- **Calm mode**: no timer, wider grip, tap-to-aim, and `T` jumps to the next lit target. These scores get a "Calm" tag, so the mode is never hidden.
+- **Calm mode**: no timer, wider grip, tap-to-aim, and `T` jumps to the next lit target. Choose it before a game starts. These scores get a "Calm" tag, so the mode is never hidden.
+- **Pause any time** with the Pause button or `P`. The cabinet dims, the guide stops talking, and nothing pops up until you press Resume.
 - Any popup (guide chat, Label Lens, a card) pauses the timer and claw. Game popups wait until the chat or Label Lens closes, and focus returns to the tank so Space drops the claw.
 - Fully playable by keyboard, with screen-reader live announcements ("Above Fleece jacket, lit target").
 - **Captions** for everything the guide says, for deaf and hard-of-hearing players (Settings → Captions).

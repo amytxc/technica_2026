@@ -802,6 +802,7 @@ function updateHUD() {
   $("#hudLives").innerHTML = game.round ? hearts(game.lives, game.maxLives) : "—";
   $("#hudLives").setAttribute("aria-label", game.round ? `${game.lives} of ${game.maxLives} tries left` : "No dive running");
   // After the game ends, the big button becomes "play again" so closing the report never leaves you stuck.
+  $("#pauseBtn").disabled = !game.manualPaused && (game.phase === "title" || game.finished);
   if (game.finished) { $("#dropBtn").disabled = false; $("#dropBtn").innerHTML = `${icon("play")} PLAY AGAIN`; }
   else $("#dropBtn").textContent = "DROP";
 }
@@ -1639,7 +1640,7 @@ function holdBtn(btn, k) {
 }
 holdBtn($("#leftBtn"), "left"); holdBtn($("#rightBtn"), "right");
 cv.addEventListener("pointerdown", e => {
-  if (!game.calm || game.phase !== "aim") return;
+  if (!game.calm || game.manualPaused || game.phase !== "aim") return;
   const rect = cv.getBoundingClientRect();
   game.claw.goalX = clamp(((e.clientX - rect.left) / rect.width) * W, MIN_X, MAX_X);
 });
@@ -1724,12 +1725,13 @@ document.querySelectorAll("dialog").forEach(d => {
 const TOOL_DLGS = ["coralDlg", "lensDlg", "lbDlg", "settingsDlg"];
 let heldPopups = [];
 const toolOpen = () => TOOL_DLGS.some(id => document.getElementById(id).open);
-function gameShow(fn) { if (toolOpen()) heldPopups.push(fn); else fn(); }
+function gameShow(fn) { if (toolOpen() || game.manualPaused) heldPopups.push(fn); else fn(); }
+function releaseHeldPopups() { if (toolOpen() || game.manualPaused) return; const q = heldPopups; heldPopups = []; q.forEach(fn => fn()); }
 TOOL_DLGS.forEach(id => document.getElementById(id).addEventListener("close", () => {
   if (toolOpen()) return;
-  const q = heldPopups; heldPopups = []; q.forEach(fn => fn());
+  releaseHeldPopups();
   // Put focus back on the tank so Space drops the claw instead of re-pressing the button that opened the popup.
-  if (game.phase === "aim" && !document.querySelector("dialog[open]")) { showBanner("Back to the game!", "info", 1400, "play"); $("#tank").focus({ preventScroll: true }); }
+  if (game.phase === "aim" && !game.manualPaused && !document.querySelector("dialog[open]")) { showBanner("Back to the game!", "info", 1400, "play"); $("#tank").focus({ preventScroll: true }); }
 }));
 $("#coralDlg").addEventListener("close", () => { if (Voice.active && !Voice.reacting) Voice.stop(); });
 $("#catchDlg").addEventListener("close", () => { Voice.stop(); if (game.phase === "catch") afterCatch(); });
@@ -1767,8 +1769,9 @@ function setManualPause(on) {
   b.innerHTML = on ? `${icon("play")} Resume` : `${icon("pause")} Pause`;
   b.setAttribute("aria-pressed", String(on));
   keys.left = keys.right = false;
+  updateHUD();
   if (on) { Voice.stop(); announce("Game paused."); $("#overlayResumeBtn").focus(); }
-  else if (game.phase === "aim") $("#tank").focus({ preventScroll: true });
+  else { releaseHeldPopups(); if (game.phase === "aim") $("#tank").focus({ preventScroll: true }); }
 }
 $("#pauseBtn").onclick = () => setManualPause(!game.manualPaused);
 $("#overlayResumeBtn").onclick = () => setManualPause(false);
