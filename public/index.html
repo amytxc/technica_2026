@@ -53,6 +53,7 @@
     </div>
   </section>
 
+  <div class="side">
   <aside class="panel" aria-label="Field guide">
     <div>
       <div class="eyebrow" id="panelEyebrow">Field guide</div>
@@ -72,12 +73,14 @@
       <ul class="log" id="catchLog"></ul>
       <p class="empty" id="logEmpty">Nothing rescued yet. Every item you pull out opens its ingredient card.</p>
     </div>
-    <div class="coral-card">
+  </aside>
+  <!-- the ocean guide gets its own box so the field guide panel stays focused on the dive -->
+  <aside class="panel guide-panel coral-card" aria-label="Ocean guide">
       <div class="who"><span class="coral-av g-art" aria-hidden="true"></span><div><b class="g-name">Coral</b> · ocean guide <small class="muted" id="coralMode"></small><br><small class="muted">Chatting pauses the game.</small></div></div>
       <p class="coral-last" id="coralLast">Ask me anything about plastic, labels or recycling.</p>
       <div class="suggest" id="suggest"></div>
-    </div>
   </aside>
+  </div>
 </main>
 <p class="foot">Facts come from published research and agencies listed in the project README. Waste rules differ by town: check your local recycling guide.</p>
 
