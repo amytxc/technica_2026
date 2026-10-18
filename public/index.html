@@ -1,5 +1,4 @@
 <title>Clawcean</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Clawcean: learn which common items turn into ocean microplastics, then use a claw machine to clean them up.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A6%80%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -395,7 +394,6 @@ function applySettings() {
   document.documentElement.dataset.font = settings.large ? "large" : "";
   document.documentElement.dataset.easy = settings.easy ? "on" : "";
   document.documentElement.dataset.motion = settings.motion ? "reduce" : "";
-  $("#hudTimerLabel").textContent = settings.calm ? "Mode" : "Timer";
   store.set("settings", settings);
 }
 
@@ -500,12 +498,22 @@ const Voice = {
     }
     return out.map(x => x.trim()).filter(Boolean);
   },
+  block() {
+    if (this.blocked) return;
+    this.on = false; this.blocked = true;
+    announce("The guide voices are out of credits for now, so your device's voice will read instead.");
+  },
   fetchUrl(text, g) {
     const key = g.id + "|" + text;
     if (!this.urls.has(key)) {
       const pr = fetch("/api/tts", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text, guide: g.id }) })
         .then(async r => {
-          if (!r.ok) { const e = new Error(`voice ${r.status}`); e.status = r.status; throw e; }
+          if (!r.ok) {
+            // Out of credits or a bad key: switch to the device voice for the session right away,
+            // even if the line that asked has already been cancelled by a newer one.
+            if ([401, 402, 403].includes(r.status)) this.block();
+            const e = new Error(`voice ${r.status}`); e.status = r.status; throw e;
+          }
           return URL.createObjectURL(await r.blob());
         });
       pr.catch(() => this.urls.delete(key));
@@ -544,10 +552,7 @@ const Voice = {
       } catch (e) {
         if (my !== this.seq) return;
         console.warn(`${g.name}'s ElevenLabs voice failed (${e.message}); using the device voice.`);
-        if ([401, 402, 403].includes(e.status)) {   // out of credits or bad key: stop asking for this session
-          this.on = false; this.blocked = true;
-          announce("The guide voices are out of credits for now, so your device's voice will read instead.");
-        } else announce(`${g.name}'s voice didn't load, so your device's voice is reading instead.`);
+        if (![401, 402, 403].includes(e.status)) announce(`${g.name}'s voice didn't load, so your device's voice is reading instead.`);
       }
     }
     // Device voice: one sentence at a time so the captions can follow along.
@@ -800,6 +805,7 @@ function updateHUD() {
   $("#hudRound").textContent = game.round ? `${game.round.caught} / ${game.round.total}` : `${rescuedCount()} / ${TOTAL_ITEMS}`;
   $("#hudScore").textContent = game.score.toLocaleString();
   const aiming = game.phase === "aim";
+  $("#hudTimerLabel").textContent = game.calm ? "Mode" : "Timer";
   $("#hudTimer").textContent = game.calm ? "Calm" : aiming ? `${Math.ceil(game.timer)}s` : "—";
   $("#hudTimerBox").classList.toggle("low", aiming && !game.calm && game.timer <= 5);
   const canMove = aiming && game.claw.state === "idle";

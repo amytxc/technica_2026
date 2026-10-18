@@ -20,7 +20,14 @@ Without a key, the game still runs in **offline mode** with all its built-in con
 | `ELEVENLABS_API_KEY` | — | Server-side ElevenLabs key for the guides' voices. Without it, read-aloud uses the browser's voice. |
 | `ELEVENLABS_MODEL` | `eleven_v4` | Any ElevenLabs TTS model. `eleven_flash_v2_5` is about 3× faster to start talking. |
 | `ELEVENLABS_VOICE_<GUIDE>` | premade voices | Optional voice ID override per guide: `CORAL`, `PINCH`, `JELLY`, `TUCK`, `SPLASH` |
-| `PORT` | `3000` | |
+| `PORT` | `3000` | Most hosts set this for you. |
+| `DATA_DIR` | `./data` | Where `leaderboard.json` is saved. On hosts that reset the app folder on each deploy, point this at a persistent disk. |
+| `TRUST_PROXY` | on | Uses the `X-Forwarded-For` header to tell players apart behind a host's proxy, so rate limits are per player. Set `0` only when the app is reached directly. |
+
+### Deploying
+Any Node 18+ host works (Render, Railway, Fly.io, a VM): set the start command to `npm start` and add `GEMINI_API_KEY` and `ELEVENLABS_API_KEY` as environment variables in the host's dashboard (never commit `.env`). `GET /api/health` reports whether each key is set, which works as a health check. Voice clips are cached in memory, so they're regenerated after a restart.
+
+**On phones**, Label Lens, Leaderboard and Settings fold behind the ☰ button in the top bar; the cabinet fits the screen width.
 
 **Quick demo:** press **▶ Quick demo** on the start screen, or open `http://localhost:3000/?demo`. It's one dive (The Bathroom Shelf) with a +1 demo try and a checklist of every feature: lesson, quick check, grab, Gemini town tips, guide chat, guide voice, Label Lens, leaderboard and comfort settings. Demo scores don't go on the leaderboard.
 
@@ -63,7 +70,7 @@ All calls go through `server.js` → `/api/gemini`, which forwards only whitelis
 
 **Guide reactions:** during play the guide reacts in character to misses, slips, streaks, the last 5 seconds and cleared dives ("Arr, an empty claw!"). Reactions never talk over a card being read, and they're preloaded at the start of each dive so they play instantly. Turn them off in Settings.
 
-**Captions:** everything the guide says appears in an RPG-style dialogue box with the guide's portrait, name plate and typewriter text in the Bungee game font. It shows above popups (at the top of the screen) and mid-tank during play, and never blocks clicks. Easy-read swaps the caption font for Atkinson Hyperlegible.
+**Captions:** everything the guide says appears in an RPG-style dialogue box with the guide's portrait, name plate and typewriter text in the Bungee game font. It shows at the top of the screen over popups, in the water during play on laptops, and just above the tank on phones. It never blocks clicks. Easy-read swaps the caption font for Atkinson Hyperlegible.
 
 The guide reads lessons, catch cards, Gemini tips and chat answers aloud (turn on **Auto-read** to hear every card as it opens, or tap **Read to me** on any card). Audio is made through `/api/tts` on the server, so the key stays private, and repeated lines are cached so they cost no extra credits. If ElevenLabs isn't available, each guide still gets its own pitch and speed in the browser's voice.
 
@@ -77,7 +84,8 @@ The guide reads lessons, catch cards, Gemini tips and chat answers aloud (turn o
 - **Auto-read** or **Read to me** on lessons, catch cards and chat, in the chosen guide's ElevenLabs voice (device voice as a fallback).
 - High-contrast mode, larger text, and reduced motion (also follows the OS setting).
 - Targets use a shape (◆) as well as color.
-- **Easy-read font** setting swaps the pixel fonts for Atkinson Hyperlegible, a typeface designed for low-vision readers.
+- Everything you read as sentences in popups (lessons, cards, chat, tips) uses **Atkinson Hyperlegible**, a typeface designed for low-vision readers. The **Easy-read font** setting switches the remaining pixel fonts (titles, labels, buttons, HUD, captions) to it as well.
+- Colors each have one job: gold for targets and rewards, sky blue for the guide and info, coral for buttons, green for success and pink for misses.
 - Lessons are written in plain language. Label Lens turns the game into a real-world habit.
 
 ## Files
@@ -86,7 +94,7 @@ The guide reads lessons, catch cards, Gemini tips and chat answers aloud (turn o
 public/index.html   the game (HTML + JS: canvas renderer, content, Gemini/voice clients)
 public/style.css    all styling
 public/art.js       pixel sprites + UI icons
-public/fonts/       self-hosted Jersey 15
+public/fonts/       self-hosted Jersey 15 (the body font)
 server.js           static server + Gemini proxy + shared leaderboard (data/leaderboard.json)
 DEVPOST.md          submission write-up
 ```
@@ -97,7 +105,7 @@ No emoji: every graphic is pixel art, so it looks the same on every device.
 
 - **Sprites** (guides and the 20 ocean items): 16×16 pixel art made for Clawcean in the [Sweetie 16 palette](https://lospec.com/palette-list/sweetie-16) by GrafxKid. They live in `public/art.js` as run-length-encoded rows; the outline is added in code.
 - **UI icons**: [Pixelarticons](https://github.com/halfmage/pixelarticons) (MIT) and [Pixel Icon Library](https://pixeliconlibrary.com) by HackerNoon (CC BY 4.0), downloaded through the [Iconify API](https://iconify.design) and stored in `public/art.js` so the game works offline.
-- **Fonts**: Bungee (titles), [Jersey 15](https://fonts.google.com/specimen/Jersey+15) (body, self-hosted in `public/fonts/`), Silkscreen (labels), VT323 (HUD numbers), Atkinson Hyperlegible (Easy-read). All SIL Open Font License.
+- **Fonts**: Bungee (titles), [Jersey 15](https://fonts.google.com/specimen/Jersey+15) (body, self-hosted in `public/fonts/`), Silkscreen (labels), VT323 (HUD numbers), Atkinson Hyperlegible (popup reading text and Easy-read). All SIL Open Font License.
 
 ## Sources for the lesson facts
 

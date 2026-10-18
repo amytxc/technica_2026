@@ -19,7 +19,9 @@ const MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
 const EL_KEY = process.env.ELEVENLABS_API_KEY || "";
 const EL_MODEL = process.env.ELEVENLABS_MODEL || "eleven_v4";
 const PUBLIC = path.join(__dirname, "public");
-const DATA = path.join(__dirname, "data");
+const DATA = process.env.DATA_DIR || path.join(__dirname, "data");   // point at a persistent disk on hosts that wipe the app folder
+// Hosts like Render, Railway and Fly put a proxy in front of the app; without this, every player would share one rate limit.
+const TRUST_PROXY = process.env.TRUST_PROXY !== "0";
 const LB_FILE = path.join(DATA, "leaderboard.json");
 
 // Ocean guides: each one has its own ElevenLabs voice and delivery. Premade voices work on every account;
@@ -54,6 +56,11 @@ function readBody(req, limit) {
 
 // --- simple per-IP rate limit for Gemini calls ---
 const hits = new Map();
+function clientIp(req) {
+  const fwd = TRUST_PROXY && req.headers["x-forwarded-for"];
+  return (fwd ? String(fwd).split(",")[0].trim() : req.socket.remoteAddress) || "x";
+}
+setInterval(() => { const now = Date.now(); for (const [k, arr] of hits) if (!arr.some(t => now - t < 60_000)) hits.delete(k); }, 5 * 60_000).unref();
 function allowed(ip, max = 30, windowMs = 60_000) {
   const now = Date.now(); const arr = (hits.get(ip) || []).filter(t => now - t < windowMs);
   arr.push(now); hits.set(ip, arr); return arr.length <= max;
@@ -66,7 +73,7 @@ const clean = s => String(s || "").replace(/[<>\u0000-\u001f]/g, "").trim().slic
 
 async function handleGemini(req, res) {
   if (!KEY) return send(res, 503, { error: "Gemini isn't configured on the server. Add GEMINI_API_KEY to .env." });
-  const ip = req.socket.remoteAddress || "x";
+  const ip = clientIp(req);
   if (!allowed(ip)) return send(res, 429, { error: "Too many Gemini requests. Wait a minute and try again." });
   let body;
   try { body = await readBody(req, 8 * 1024 * 1024); } catch (e) { return send(res, 413, { error: e.message === "too_large" ? "Request is too large (8 MB max)." : "Invalid JSON." }); }
@@ -116,7 +123,7 @@ function elevenLabs(voice, text, settings) {
 }
 async function handleTts(req, res) {
   if (!EL_KEY) return send(res, 503, { error: "ElevenLabs isn't configured on the server. Add ELEVENLABS_API_KEY to .env." });
-  const ip = req.socket.remoteAddress || "x";
+  const ip = clientIp(req);
   if (!allowed("tts:" + ip, 40)) return send(res, 429, { error: "Too many voice requests. Wait a minute and try again." });
   let b; try { b = await readBody(req, 16 * 1024); } catch { return send(res, 400, { error: "Invalid request." }); }
   const guide = GUIDES[b.guide] || GUIDES.coral;
@@ -141,7 +148,7 @@ async function handleTts(req, res) {
 async function handleLeaderboard(req, res) {
   if (req.method === "GET") return send(res, 200, { entries: loadLb().slice(0, 50) });
   if (req.method === "POST") {
-    if (!allowed("lb:" + (req.socket.remoteAddress || "x"), 6)) return send(res, 429, { error: "Too many scores at once. Try again in a minute." });
+    if (!allowed("lb:" + clientIp(req), 6)) return send(res, 429, { error: "Too many scores at once. Try again in a minute." });
     let b; try { b = await readBody(req, 4096); } catch { return send(res, 400, { error: "Invalid entry." }); }
     const entry = {
       id: String(b.id || Math.random().toString(36).slice(2, 10)).replace(/[^a-z0-9]/gi, "").slice(0, 12),
