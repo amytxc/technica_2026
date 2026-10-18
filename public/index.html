@@ -99,7 +99,7 @@
       <div class="tile c-kelp"><div class="ico" aria-hidden="true"><i data-ic="check"></i></div><h3>2 · Check</h3><p>Get it right for a <i data-ic="heart-full" class="red"></i> bonus try</p></div>
       <div class="tile c-coral"><div class="ico" aria-hidden="true"><i data-spr="bag"></i></div><h3>3 · Grab</h3><p>Catch the glowing plastic</p></div>
     </div>
-    <p class="center-note">5 dives · 20 pieces of plastic · 1 try per dive (+1 for a right answer)</p>
+    <p class="center-note">5 dives and 20 pieces of plastic. You get 1 try per dive, plus 1 more for a right answer.</p>
     <fieldset class="field" style="border:0;padding:0;margin:0;min-width:0">
       <legend style="font-weight:700;font-size:var(--step--1);margin-bottom:6px">Pick your ocean guide</legend>
       <div class="guides" id="guidePick"></div>
@@ -861,11 +861,14 @@ function openLesson(i) {
 }
 function renderLesson() {
   const m = MODULES[game.moduleIdx], qz = m.quiz, body = $("#lessonBody");
-  const spoken = m.lessons.map(l => `${l.h}. ${l.p} ${l.stat}.`).join(" ") + ` Quick check: ${qz.q} ${qz.options.map((o, k) => `${"ABCD"[k]}: ${o}.`).join(" ")}`;
+  const lessonText = m.lessons.map(l => `${l.h}. ${l.p} ${l.stat}.`).join(" ");
+  const quizText = `Quick check: ${qz.q} ${qz.options.map((o, k) => `${"ABCD"[k]}: ${o}.`).join(" ")}`;
+  const spoken = `${lessonText} ${quizText}`;
   body.innerHTML = `
     <div class="dlg-head">
-      <span class="eyebrow">${game.demo ? "Demo dive" : `Dive ${game.moduleIdx + 1} of 5`} · ${esc(m.sub)}</span>
+      <span class="eyebrow">${game.demo ? "Demo dive" : `Dive ${game.moduleIdx + 1} of 5`}</span>
       <h2 id="lessonTitle">${art(m.art, "inl")} ${esc(m.title)}</h2>
+      <p class="dlg-sub">${esc(m.sub)}</p>
       <button class="btn" type="button" id="lsRead">${icon("volume-2")} Read to me</button>
     </div>
     <div class="tiles">${m.lessons.map((l, k) => `
@@ -875,14 +878,25 @@ function renderLesson() {
         <p>${esc(l.p)}</p>
         <div class="stat">${esc(l.stat)}</div>
       </article>`).join("")}</div>
-    <section class="quiz-box">
-      <div class="quiz-q" id="quizQ"><span class="eyebrow">${icon("bolt")} Quick check · right answer = ${icon("heart-full", "red")} bonus try this dive</span>${esc(qz.q)}</div>
+    <div class="row center" id="lsQuizRow"><button class="btn primary" type="button" id="lsQuiz">Got it, quiz me →</button></div>
+    <section class="quiz-box" id="lsQuizBox" hidden>
+      <div class="quiz-q" id="quizQ"><span class="eyebrow">${icon("bolt")} Quick check</span>${esc(qz.q)}</div>
+      <p class="quiz-rule">Get it right for a ${icon("heart-full", "red")} bonus try this dive.</p>
       <div class="quiz" role="group" aria-labelledby="quizQ">${qz.options.map((o, k) => `<button type="button" data-k="${k}"><span class="k" aria-hidden="true">${"ABCD"[k]}</span>${esc(o)}</button>`).join("")}</div>
       <div id="quizFb"></div>
     </section>
     <div class="row center"><button class="btn primary" type="button" id="lsGo" hidden>Light up the ocean →</button></div>`;
-  readButton($("#lsRead"), spoken);
-  speak(spoken, false, $("#lsRead"));
+  readButton($("#lsRead"), lessonText);
+  speak(lessonText, false, $("#lsRead"));
+  // The quick check stays hidden until the facts are read, so the popup does one job at a time.
+  $("#lsQuiz").onclick = () => {
+    Voice.stop();
+    $("#lsQuizRow").hidden = true; $("#lsQuizBox").hidden = false;
+    readButton($("#lsRead"), spoken);
+    speak(quizText);
+    $("#lsQuizBox").scrollIntoView({ block: "nearest" });
+    body.querySelector(".quiz button").focus();
+  };
   body.querySelectorAll(".quiz button").forEach(b => b.onclick = () => {
     const k = +b.dataset.k, ok = k === qz.answer;
     body.querySelectorAll(".quiz button").forEach(x => { x.disabled = true; if (+x.dataset.k === qz.answer) x.classList.add("right"); });
@@ -1036,13 +1050,15 @@ function showCatch(it, pts) {
   $("#catchBody").innerHTML = `
     <div class="catch-head">
       <div class="catch-orb" aria-hidden="true">${sprite(it.spr, "lg")}</div>
-      <span class="eyebrow">${pts ? "Rescued!" : "Catch log"} · ${esc(modTitle(it))}</span>
+      <span class="eyebrow">${pts ? "Rescued!" : "Catch log"}</span>
       <h2 id="catchTitle">${esc(it.name)}</h2>
-      ${pts ? `<span class="points">+${pts} points${it.mine ? " · My Shelf bonus" : ""}${!it.mine && game.round && game.round.streak > 1 ? ` · ${icon("fire")} ${game.round.streak} in a row` : ""}</span>` : ""}
+      <p class="dlg-sub">${esc(modTitle(it))}</p>
+      ${pts ? `<div class="badges"><span class="points">+${pts} points</span>${it.mine ? `<span class="points">My Shelf bonus</span>` : ""}${!it.mine && game.round && game.round.streak > 1 ? `<span class="points streak">${icon("fire")} ${game.round.streak} in a row</span>` : ""}</div>` : ""}
     </div>
-    <div class="inside"><span class="section-label">What's inside · ◆ = plastic</span>
-      <div class="chips">${it.ingredients.map(([n, p]) => `<span class="chip ${p ? "plastic" : ""}">${esc(n)}${p ? '<span class="sr-only"> (plastic)</span>' : ""}</span>`).join("")}</div></div>
-    <div class="tiles">
+    <div class="inside"><span class="section-label">What's inside</span>
+      <div class="chips">${it.ingredients.map(([n, p]) => `<span class="chip ${p ? "plastic" : ""}">${esc(n)}${p ? '<span class="sr-only"> (plastic)</span>' : ""}</span>`).join("")}</div>
+      <span class="legend" aria-hidden="true">◆ marks a plastic ingredient</span></div>
+    <div class="tiles stack">
       <div class="tile c-coral"><div class="ico" aria-hidden="true">${icon("waves")}</div><h3>Why it's bad</h3><p>${esc(it.bad)}</p></div>
       <div class="tile c-sky"><div class="ico" aria-hidden="true">${icon(bin[0])}</div><h3>${bin[1]}</h3><p>${esc(it.bin[1])}</p><p class="dont">${icon("close")} Don't ${esc(it.dont)}.</p></div>
       <div class="tile c-kelp"><div class="ico" aria-hidden="true">${icon("lightbulb")}</div><h3>Try instead</h3><p>${esc(it.swap)}</p></div>
@@ -1301,7 +1317,7 @@ function renderLens(r) {
       </div>
       ${r.hits.length ? `<div class="inside"><span class="section-label">◆ Plastic ingredients</span><div class="chips">${r.hits.map(h => `<span class="chip plastic" title="${esc(h.why || "")}">${esc(h.name)}</span>`).join("")}</div></div>
       <ul class="dispose">${r.hits.map(h => `<li><b>${esc(h.name)}:</b> ${esc(h.why || "")}</li>`).join("")}</ul>` : ""}
-      <div class="tiles">
+      <div class="tiles stack">
         <div class="tile c-sky"><div class="ico" aria-hidden="true">${icon("trash")}</div><h3>Getting rid of it</h3><p>${esc(r.disposal || "")}</p></div>
         <div class="tile c-kelp"><div class="ico" aria-hidden="true">${icon("lightbulb")}</div><h3>Try instead</h3><p>${esc(r.swap || "")}</p></div>
       </div>
