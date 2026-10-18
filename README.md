@@ -29,7 +29,7 @@ Any Node 18+ host works (Render, Railway, Fly.io, a VM): set the start command t
 
 **On phones**, Label Lens, Leaderboard and Settings fold behind the ☰ button in the top bar; the cabinet fits the screen width.
 
-**Quick demo:** press **▶ Quick demo** on the start screen, or open `http://localhost:3000/?demo`. It's one dive (The Bathroom Shelf) with a +1 demo try and a checklist of every feature: lesson, quick check, grab, Gemini town tips, guide chat, guide voice, Label Lens, leaderboard and comfort settings. Demo scores don't go on the leaderboard.
+**Quick demo:** press **▶ Quick demo** on the start screen. It's one dive (The Bathroom Shelf) with a +1 demo try and a checklist of every feature: lesson, quick check, grab, Gemini town tips, guide chat, guide voice, Label Lens, leaderboard and comfort settings. Demo scores don't go on the leaderboard.
 
 ## How the game works
 
