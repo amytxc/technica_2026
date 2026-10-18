@@ -104,7 +104,6 @@ public/style.css    all styling
 public/art.js       pixel sprites + UI icons
 public/fonts/       self-hosted Jersey 15 (the body font)
 server.js           static server + Gemini proxy + shared leaderboard (data/leaderboard.json)
-DEVPOST.md          submission write-up
 ```
 
 ## Art & fonts
