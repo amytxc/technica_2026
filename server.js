@@ -14,9 +14,11 @@ try {
 } catch {}
 
 const PORT = Number(process.env.PORT) || 3000;
-const KEY = process.env.GEMINI_API_KEY || "";
+// Keys pasted into a host's dashboard often carry stray quotes, spaces or a newline; ElevenLabs and Gemini reject those as invalid.
+const secret = name => String(process.env[name] || "").trim().replace(/^["']+|["']+$/g, "").trim();
+const KEY = secret("GEMINI_API_KEY");
 const MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
-const EL_KEY = process.env.ELEVENLABS_API_KEY || "";
+const EL_KEY = secret("ELEVENLABS_API_KEY");
 const EL_MODEL = process.env.ELEVENLABS_MODEL || "eleven_v4";
 const PUBLIC = path.join(__dirname, "public");
 const DATA = process.env.DATA_DIR || path.join(__dirname, "data");   // point at a persistent disk on hosts that wipe the app folder
@@ -71,7 +73,7 @@ function allowed(ip, max = 30, windowMs = 60_000) {
 // and every server copy has its own disk. Vercel's Upstash integration sets KV_REST_API_* ; Upstash's own uses UPSTASH_REDIS_REST_*.
 // Local / single server: a JSON file in DATA_DIR.
 const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || "";
-const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || "";
+const KV_TOKEN = secret("KV_REST_API_TOKEN") || secret("UPSTASH_REDIS_REST_TOKEN");
 const LB_KEY = "clawcean:leaderboard";
 async function kv(...cmd) {
   const r = await fetch(KV_URL, { method: "POST", headers: { authorization: `Bearer ${KV_TOKEN}`, "content-type": "application/json" }, body: JSON.stringify(cmd), signal: AbortSignal.timeout(5000) });
@@ -221,5 +223,8 @@ server.listen(PORT, () => {
   console.log(`Clawcean running at http://localhost:${PORT}`);
   console.log(KEY ? `Gemini connected (model: ${MODEL})` : "Gemini key missing: the game runs in offline mode. Add GEMINI_API_KEY to .env.");
   console.log(`Leaderboard: ${Board.kind === "upstash" ? "Upstash Redis" : "file at " + LB_FILE}`);
+  // Only the length and first 3 characters, so the key's shape can be checked in the host's logs without exposing it.
+  const shape = k => `${k.length} chars, starts "${k.slice(0, 3)}…"`;
+  if (EL_KEY) console.log(`ElevenLabs key: ${shape(EL_KEY)} (a valid key is 51 chars starting "sk_")`);
   console.log(EL_KEY ? `ElevenLabs voices on (model: ${EL_MODEL})` : "ElevenLabs key missing: read-aloud uses the browser's built-in voice. Add ELEVENLABS_API_KEY to .env.");
 });
