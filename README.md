@@ -101,7 +101,7 @@ DEVPOST.md          submission write-up
 
 ## Art & fonts
 
-No emoji: every graphic is pixel art, so it looks the same on every device.
+Every graphic is pixel art, so it looks the same on every device.
 
 - **Sprites** (guides and the 20 ocean items): 16×16 pixel art made for Clawcean in the [Sweetie 16 palette](https://lospec.com/palette-list/sweetie-16) by GrafxKid. They live in `public/art.js` as run-length-encoded rows; the outline is added in code.
 - **UI icons**: [Pixelarticons](https://github.com/halfmage/pixelarticons) (MIT) and [Pixel Icon Library](https://pixeliconlibrary.com) by HackerNoon (CC BY 4.0), downloaded through the [Iconify API](https://iconify.design) and stored in `public/art.js` so the game works offline.
