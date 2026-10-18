@@ -8,7 +8,7 @@
   --deep: #221029;
   --panel: #2e1738;
   --panel-2: #3d2049;
-  --line: #5e3569;
+  --line: #93639f;   /* 3:1 against panels, so card edges stay visible */
   --ink: #fbeff3;
   --muted: #c9a7cc;
   --coral: #ff6f59;
@@ -23,6 +23,8 @@
   --font-mono: "Silkscreen", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --font-digits: "VT323", "Silkscreen", ui-monospace, monospace;
   --font-game: "Bungee", "Impact", system-ui, sans-serif;
+  /* paragraphs in popups: pixel fonts stay on titles, labels and buttons */
+  --font-read: "Atkinson Hyperlegible", "Verdana", system-ui, sans-serif;
   --step--1: 0.86rem; --step-0: 1rem; --step-1: 1.2rem; --step-2: 1.5rem; --step-3: 2.1rem; --step-4: 3rem;
   --radius: 4px;
   --radius-sm: 2px;
@@ -33,6 +35,7 @@
   --ink: #fff; --muted: #e6e6e6; --sodium: #ffe600; --kelp: #4dffb8; --coral: #ff8a73;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }   /* component display rules (.row, .btn, .quiz-box) would otherwise override it */
 html, body { min-height: 100%; }
 html { font-synthesis: none; }   /* no smeared fake-bold on pixel fonts */
 body {
@@ -198,6 +201,10 @@ dialog::backdrop { background: repeating-linear-gradient(0deg, rgba(12,5,16,.86)
 .dlg h2 { font-family: var(--font-display); font-weight: 400; font-size: clamp(1.6rem, 5vw, 2.3rem); line-height: 1.05; margin: 0; text-wrap: balance; color: var(--sodium); text-shadow: 3px 3px 0 #7a2b00; letter-spacing: .02em; }
 .dlg h3 { margin: 0; font-size: var(--step-1); }
 .dlg p { margin: 0; max-width: 62ch; }
+/* anything a player reads as sentences uses the readable face, a little larger with looser lines */
+.dlg p, .dlg li, .msg, .ai-box, .feedback, .quiz-q, .quiz button, .lens-result, .coral-last { font-family: var(--font-read); line-height: 1.55; }
+.dlg-sub { color: var(--muted); font-size: 1rem !important; margin-top: -4px !important; }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .dlg-head { display: grid; gap: 8px; justify-items: center; text-align: center; }
 .dlg-head p { max-width: 50ch; font-size: 1.1rem; }
 /* the dive/context line is a ticket stub at the popup's top edge, not a pill label over the title */
@@ -217,7 +224,7 @@ dialog::backdrop { background: repeating-linear-gradient(0deg, rgba(12,5,16,.86)
 .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .row.end { justify-content: flex-end; }
 .row.center { justify-content: center; }
-.center-note { text-align: center; color: var(--muted); font-family: var(--font-mono); font-size: .8rem; letter-spacing: .04em; margin: 0 auto !important; }
+.center-note { text-align: center; color: var(--muted); font-size: .95rem; margin: 0 auto !important; }
 .field { display: grid; gap: 6px; }
 .field label { font-weight: 700; font-size: var(--step--1); }
 .field input, .field textarea, .field select { background: var(--abyss); border: 2px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; width: 100%; }
@@ -229,20 +236,31 @@ dialog::backdrop { background: repeating-linear-gradient(0deg, rgba(12,5,16,.86)
 
 /* picture tiles: one idea each, icon first */
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+#lessonBody .tiles { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+#lessonBody .tile { text-align: left; }
+#lessonBody .tile .ico { place-items: center start; }
 .tile { --c: var(--sodium); background: var(--panel); border: 2px solid var(--line); border-top: 6px solid var(--c); border-radius: var(--radius-sm); padding: 14px; display: grid; gap: 6px; align-content: start; text-align: center; }
 .tile .ico { height: 64px; display: grid; place-items: center; color: var(--c); }
 .tile .ico .ic { width: 48px; height: 48px; filter: drop-shadow(3px 3px 0 rgba(0,0,0,.5)); }
 .tile .ico .spr { width: 64px; height: 64px; }
 .tile h3 { font-family: var(--font-display); font-weight: 400; font-size: 1.02rem; color: var(--c); line-height: 1.15; }
-.tile p { margin: 0 auto; font-size: 1.02rem; line-height: 1.45; }
-.tile .stat { font-family: var(--font-mono); font-size: .74rem; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 6px; margin-top: 4px; }
+.tile p { margin: 0; font-size: 1.02rem; text-align: left; }
+#welcomeDlg .tile p { text-align: center; margin: 0 auto; }   /* one-liners stay centered under their icon */
+.tile .stat { font-family: var(--font-read); font-size: .9rem; text-align: left; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 6px; margin-top: 4px; }
 .tile.c-coral { --c: var(--coral); } .tile.c-kelp { --c: var(--kelp); } .tile.c-sky { --c: var(--sky); }
 .tile .dont { color: #ffc2cd; font-size: .95rem; }
+/* stacked rows (catch card, Label Lens): icon on the left, heading and text on the right, read top to bottom */
+.tiles.stack { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.tiles.stack .tile { grid-template-columns: 48px minmax(0, 1fr); column-gap: 14px; text-align: left; border-top-width: 2px; border-left: 6px solid var(--c); padding: 12px 14px; }
+.tiles.stack .tile .ico { grid-row: 1 / span 3; height: auto; align-self: start; }
+.tiles.stack .tile .ico .ic { width: 36px; height: 36px; }
+.tiles.stack .tile > :not(.ico) { grid-column: 2; }
 
 /* quick check */
 .quiz-box { background: #1b0a0b; border: 2px solid #3a1518; border-radius: var(--radius-sm); padding: 14px; display: grid; gap: 12px; }
 .quiz-q { font-weight: 700; font-size: 1.15rem; text-align: center; display: grid; gap: 6px; justify-items: center; }
-.quiz-q .eyebrow { color: var(--sodium); display: inline-flex; align-items: center; gap: 4px; }
+.quiz-rule { text-align: center; color: var(--muted); font-size: .95rem; margin: -6px auto 0 !important; }
+.quiz-q .eyebrow { color: var(--sodium); display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); }
 .quiz { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
 .quiz button { display: flex; align-items: center; gap: 10px; text-align: left; background: var(--panel); border: 2px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; cursor: pointer; font-weight: 700; min-height: 52px; box-shadow: 0 4px 0 #0b0510; }
 .quiz button:active:not([disabled]) { transform: translateY(3px); box-shadow: 0 1px 0 #0b0510; }
@@ -263,12 +281,15 @@ dialog::backdrop { background: repeating-linear-gradient(0deg, rgba(12,5,16,.86)
 .points { font-family: var(--font-mono); color: var(--kelp); font-weight: 700; background: rgba(58,214,165,.12); border: 2px solid var(--kelp); border-radius: 0; padding: 2px 12px; }
 .inside { display: grid; gap: 6px; justify-items: center; text-align: center; }
 .inside .chips { justify-content: center; }
-.town-note { text-align: center; color: var(--muted); font-size: .9rem; margin: 0 auto !important; }
+.legend { color: var(--muted); font-size: .9rem; font-family: var(--font-read); }
+.town-note { text-align: center; color: var(--muted); font-size: .95rem; margin: 0 auto !important; }
 .section-label { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+/* inside popups the labels carry real information, so they read as normal text */
+.dlg .section-label { font-family: var(--font-read); font-weight: 700; font-size: .95rem; letter-spacing: 0; text-transform: none; color: var(--ink); }
 .dispose { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
 .ai-box { background: var(--panel); border: 2px dashed var(--kelp); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 1rem; }
 .ai-box p { margin: 0 0 6px; } .ai-box ul { margin: 4px 0; padding-left: 18px; }
-.ai-tag { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: .04em; text-transform: uppercase; color: var(--kelp); margin-bottom: 6px; display: block; }
+.ai-tag { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: .04em; text-transform: uppercase; color: var(--kelp); margin-bottom: 6px; display: block; }
 
 /* scores */
 .stars { display: inline-flex; gap: 6px; color: var(--sodium); line-height: 1; }
