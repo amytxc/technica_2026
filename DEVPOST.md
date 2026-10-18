@@ -1,9 +1,9 @@
 # Clawcean — Devpost write-up
 
-**Tagline:** A Gemini-powered claw machine that teaches you which everyday ingredients become ocean microplastics, then lets you fish them out.
+**Tagline:** A Gemini-powered claw machine that teaches you to identify everyday items that can become ocean microplastics, then lets you fish them out to clean the ocean.
 
 **Suggested submission tracks**
-- Technica (max 3): **Dive into Equity: Best Hack for Social Good** · **Deep Sea Gamechanger: Best Gamification Hack** · **Best Shell-ucation Hack** (or **A Sea for All: Accessibility**)
+- Technica: **Dive into Equity: Best Hack for Social Good** · **Deep Sea Gamechanger: Best Gamification Hack** · **Best Shell-ucation Hack**
 - Sponsored: **[MLH] Best Use of Gemini API** (+ optional **[MLH] Best Domain Name from GoDaddy Registry** if you register e.g. `clawcean.tech`)
 
 ## Inspiration
