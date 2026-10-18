@@ -1,7 +1,7 @@
 {
   "name": "clawcean",
   "version": "1.0.0",
-  "description": "Learn which ingredients become ocean microplastics, then clean them up with a Gemini-powered claw machine.",
+  "description": "Learn which common items become ocean microplastics, then clean them up with a Gemini-powered claw machine.",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
   "engines": { "node": ">=18" },
