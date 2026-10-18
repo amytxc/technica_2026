@@ -121,10 +121,11 @@ body.manual-paused .manual-pause-overlay #overlayResumeBtn { min-height: 48px; f
 /* laptops: the cabinet column is sized from the window height, so the whole machine (DROP included) fits without scrolling.
    The non-tank chrome (top bar, marquee, HUD, controls, padding) is about 320px, plus a little breathing room; the tank keeps its 16:9 shape. */
 @media (min-width: 981px) {
-  .stage { --cab-w: max(560px, calc((100vh - 330px) * 16 / 9 + 28px)); grid-template-columns: minmax(0, var(--cab-w)) 360px; justify-content: center; }
-  @supports (height: 100svh) { .stage { --cab-w: max(560px, calc((100svh - 330px) * 16 / 9 + 28px)); } }
-  .cabinet .marquee { padding: 4px 16px; margin-bottom: 10px; }
-  .cabinet .marquee .title { font-size: clamp(1.4rem, 2.4vw, 1.9rem); }
+  .stage { --cab-w: max(560px, calc((100vh - 360px) * 16 / 9 + 28px)); grid-template-columns: minmax(0, var(--cab-w)) 360px; justify-content: center; }
+  @supports (height: 100svh) { .stage { --cab-w: max(560px, calc((100svh - 360px) * 16 / 9 + 28px)); } }
+  .stage .cabinet { padding-top: 20px; }
+  .cabinet .marquee { padding: 10px 16px 8px; margin-bottom: 10px; }
+  .cabinet .marquee .title { font-size: clamp(1.9rem, 3.2vw, 2.6rem); }
 }
 
 /* cabinet */
