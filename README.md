@@ -1,6 +1,6 @@
 # Clawcean 🦀🌊
 
-**Learn the ingredients. Clean the sea.**
+**Learn aboout microplastics in common items. Clean the sea.**
 Clawcean is an arcade claw machine set in a polluted ocean. Five short lessons teach which everyday ingredients turn into ocean microplastics. After each lesson, the items in the tank made with those ingredients light up, and you grab as many as you can before you miss. Each rescued item opens a card that lists its plastic ingredients, explains how it harms the ocean, and shows how to throw it away safely. Gemini is your guide the whole way.
 
 ## Run it
